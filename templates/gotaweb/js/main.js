@@ -349,8 +349,21 @@
       //Archipiélago canario            
       center: [28.25, -15.82],
       zoom: 7.5,
-      layers: ortofoto //Capa por defecto.
-  });        
+      layers: ortofoto, //Capa por defecto.      
+      // (plugin leaflet.TimeDimension)
+      timeDimension: true,
+      timeDimensionOptions: {
+          timeInterval: "2019-03-21T18:00:00.000Z/2019-03-23T18:00:00.000Z",
+          period: "PT1H",
+          currentTime: Date.parse("2019-03-21T18:00:00.000Z")
+      },
+      timeDimensionControl: true,
+  });
+
+  var r_cloudTimeLayer = L.timeDimension.layer.wms(r_cloud, {
+    updateTimeDimension: true,
+  }).addTo(map);
+
   
   //añade un control de escala
   L.control.scale().addTo(map);

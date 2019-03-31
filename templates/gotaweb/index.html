@@ -5,16 +5,17 @@
     <!--Importamos hoja de estilo leaflet.css, 
     librería leaflet.js, y Plugin para cargar otros CRS's-->
 
-    <!-- carga librería Leaflet en "estáticos" de Django
+    <!-- carga librería Leaflet en "estáticos" de Django-->
+    <!-- carga archivos estáticos en Django-->
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'gotaweb/css/leaflet.css' %}">
-    <script type="text/javascript" src="{% static 'gotaweb/js/leaflet.js' %}"></script>-->
+    <script type="text/javascript" src="{% static 'gotaweb/js/leaflet.js' %}"></script>
 
     <!-- carga librería Leaflet SIN Django (en local)-->
     <!--<link rel="stylesheet" type="text/css" href="css/leaflet.css">
-    <script type="text/javascript" src="js/leaflet.js"></script>***-->
+    <script type="text/javascript" src="js/leaflet.js"></script>
     <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css">
-    <script type="text/javascript" src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>-->
 
     <!--scripts necesarios para el plugin proj4 (uso sistemas coordenadas distintos)-->
     <!--(OPCION1) <script> src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>

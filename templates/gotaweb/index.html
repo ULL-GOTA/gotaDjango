@@ -5,14 +5,14 @@
     <!--Importamos hoja de estilo leaflet.css, 
     librería leaflet.js, y Plugin para cargar otros CRS's-->
 
-    <!-- carga archivos estáticos en Django
+    <!-- carga archivos estáticos en Django-->
     {% load static %}
     <link rel="stylesheet" type="text/css" href="{% static 'gotaweb/css/leaflet.css' %}">
-    <script type="text/javascript" src="{% static 'gotaweb/js/leaflet.js' %}"></script>-->
+    <script type="text/javascript" src="{% static 'gotaweb/js/leaflet.js' %}"></script>
 
-    <!--carga archivos estáticos SIN Django-->
+    <!--carga archivos estáticos SIN Django
     <link rel="stylesheet" type="text/css" href="css/leaflet.css">
-    <script type="text/javascript" src="js/leaflet.js"></script>        
+    <script type="text/javascript" src="js/leaflet.js"></script>-->
 
     <!--scripts necesarios para el plugin proj4 (uso sistemas coordenadas distintos)-->
     <!--(OPCION1) <script> src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.5.0/proj4.js"></script>
@@ -35,8 +35,8 @@
     <!--Contenedor del mapa-->
     <div id = "map"></div>   
     
-    <!--script src="{% static 'gotaweb/js/main.js' %}"></script-->
-    <script src="js/main.js"></script>
+    <script src="{% static 'gotaweb/js/main.js' %}"></script>
+    <!--<script src="js/main.js"></script>-->
     
   </body>
 </html>

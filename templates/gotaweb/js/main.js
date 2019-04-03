@@ -341,24 +341,55 @@
             layers: '20190321/v_tr_p',
             crs: crs4326,
             opacity: 0.6,
-        });
+        }),
+	
+	testLayer = L.tileLayer.wms("http://thredds.socib.es/thredds/wms/observational/hf_radar/hf_radar_ibiza-scb_codarssproc001_L1_agg/hf_radar_ibiza-scb_codarssproc001_L1_agg_best.ncd", {
+	  layers: 'sea_water_velocity',
+	  version: '1.3.0',
+	  format: 'image/png',
+	  transparent: true,
+	  styles: 'prettyvec/rainbow',
+	  markerscale: 15,
+	  markerspacing: 10,
+	  abovemaxcolor: "extend",
+	  belowmincolor: "extend",
+	  colorscalerange: "0,0.4",
+	  attribution: 'SOCIB HF RADAR | sea_water_velocity'
+	});
         
 
   //Se añaden las capas (en la 2º forma)
   var map = L.map('map', {                        
       //Archipiélago canario            
-      center: [28.25, -15.82],
+      //center: [28.25, -15.82],
+      center: [38.705, 1.15],
       zoom: 7.5,
-      layers: ortofoto, //Capa por defecto.      
+      layers: [streets,testLayer], //Capa por defecto.      
       // (plugin leaflet.TimeDimension)
       timeDimension: true,
       timeDimensionOptions: {
-          timeInterval: "2019-03-21T18:00:00.000Z/2019-03-23T18:00:00.000Z",
+          //timeInterval: "2019-03-21T18:00:00.000Z/2019-03-23T18:00:00.000Z",
+          timeInterval: "2015-09-01T18:00:00.000Z/2015-09-03T18:00:00.000Z",
           period: "PT1H",
-          currentTime: Date.parse("2019-03-21T18:00:00.000Z")
+          currentTime: Date.parse("2015-09-01T18:00:00.000Z")
       },
-      timeDimensionControl: true,
+      //timeDimensionControl: true,
+      
+      //MODIFICAR PARÁMETROS PARA INTENTAR ACELERAR LA SECUENCIA
+      timeDimensionControlOptions: {
+	playerOptions: {
+          minBufferReady: 10,
+	  buffer: 10,
+          //transitionTime: 250,
+        }
+      },
   });
+  
+  L.control.timeDimension({
+    loopButton: true,
+    speedStep: 0.5,//intervalos de velocidad
+    timeSteps: 1,//intervalos de tiempo
+  }).addTo(map);
 
   /*var T_2mTimeLayer = L.timeDimension.layer.wms(T_2m, {
     updateTimeDimension: true,
@@ -391,6 +422,7 @@
     'T_sfc': L.timeDimension.layer.wms(T_sfc),
     'p_sfc': L.timeDimension.layer.wms(p_sfc),
     'slp': L.timeDimension.layer.wms(slp),*/
+    'testLayerIbiza': L.timeDimension.layer.wms(testLayer),
     'T_2m': L.timeDimension.layer.wms(T_2m),
     'Td_2m': L.timeDimension.layer.wms(Td_2m),
     'r_v_2m': L.timeDimension.layer.wms(r_v_2m),

@@ -65,13 +65,13 @@
 	      attribution: "Pinar Canario.",
 	  }),                
 	  
-	  geologico = L.tileLayer.wms("http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer", {
+	  /*geologico = L.tileLayer.wms("http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer", {
 	      layers: '0',//*nombre capa (layer queryable al consultar la 'get capabilities' de la web wms)
 	      format: 'image/png',
 	      transparent: true,
 	      //version: '1.0.0', //version por defecto
 	      attribution: "Cartografia Geologica"
-	  }),
+	  }),*/
       
       //CAPAS gotaWeb ********************
       
@@ -142,7 +142,7 @@
         T_2m = L.tileLayer.wms("http://10.6.5.230:8080/ncWMS2/wms", {
             layers: '20190321/T_2m',
             crs: crs4326,
-            opacity: 0.6,
+            opacity: 0.8,
         }),
         
         Td_2m = L.tileLayer.wms("http://10.6.5.230:8080/ncWMS2/wms", {
@@ -342,8 +342,10 @@
             crs: crs4326,
             opacity: 0.6,
         }),
-	
-	testLayer = L.tileLayer.wms("http://thredds.socib.es/thredds/wms/observational/hf_radar/hf_radar_ibiza-scb_codarssproc001_L1_agg/hf_radar_ibiza-scb_codarssproc001_L1_agg_best.ncd", {
+		
+    testWMS= "http://thredds.socib.es/thredds/wms/observational/hf_radar/hf_radar_ibiza-scb_codarssproc001_L1_agg/hf_radar_ibiza-scb_codarssproc001_L1_agg_best.ncd",
+    
+    testLayer = L.tileLayer.wms(testWMS, {
 	  layers: 'sea_water_velocity',
 	  version: '1.3.0',
 	  format: 'image/png',
@@ -356,55 +358,113 @@
 	  colorscalerange: "0,0.4",
 	  attribution: 'SOCIB HF RADAR | sea_water_velocity'
 	});
+
+    
+    //Probando plugin 'leaflet.wms' (capa virtual)    
+
+	var catastro = L.WMS.source("http://www.ign.es/wms-inspire/pnoa-ma?SERVICE=WMS&", {
+   		  opacity: 0.5,
+	});	
+    
+    var geologico = L.WMS.source('http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer');
+    
+    /*geologico.getLayer('0').addTo(map);
+    
+    var MySource = L.WMS.Source.extend({
+        'ajax': function(url, callback) {
+            $.ajax(url, {
+                'context': this,
+                'success': function(result) {
+                    callback.call(this, result);
+                }
+            });
+        },
+        'showFeatureInfo': function(latlng, info) {
+            $('.output').html(info);
+        }
+    });*/
+    
+    
+    //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR
+    //WMS-SERVER (GetCapabilities)
+    var xhttp = new XMLHttpRequest();
+    
+    //No esta listo (onreadystatechange) hasta que se ejecuta
+    //todo el resto del codigo JS.
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+            myFunction(this);
+            capas.addBaseLayer(geologico.getLayer(nam[0]),tit[0]);
+            alert(typeof(leg[0]));
+        }
+    };
+    
+    xhttp.open("GET", "http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer?request=GetCapabilities&service=WMS", true);
+    
+    xhttp.send(); //se ejecuta (.onreadystatechange)
         
+    function myFunction(xml) {
+        var xmlDoc = xml.responseXML;
+        var layerNodes = xmlDoc.getElementsByTagName("Layer");
+        nam=[]; //vector con los 'nombres' de las capas
+        tit=[]; //vector con las 'descripciones' de las capas        
+        leg=[]; //vector con las leyendas
+        
+        //ignoramos el primer "Layer"[i=0]
+        for (var i = 1; i < layerNodes.length; i++) {  
+            //La siguiente variable recoge los NOMBRES de las capas,
+            // que es realmente lo que interesa
+            nam.push(layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue); 
+            
+            tit.push(layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);            
+            
+            //****** LEER ATRIBUTO DEL NODO DE LA LEYENDA ????
+            //leg.push(layerNodes[i].getElementsByTagName("Format")[0].childNodes[0].nodeValue);
+        };
+    };
 
   //Se añaden las capas (en la 2º forma)
   var map = L.map('map', {                        
-      //Archipiélago canario            
-      //center: [28.25, -15.82],
-      center: [38.705, 1.15],
+      //Archipiélago canario:            
+      center: [28.25, -15.82],
+      //Ibiza-pruebas:
+      //center: [38.705, 1.15],
       zoom: 7.5,
-      layers: [streets,testLayer], //Capa por defecto.      
+      layers: [outdoors, testLayer], //Capa por defecto.      
       // (plugin leaflet.TimeDimension)
       timeDimension: true,
       timeDimensionOptions: {
           //timeInterval: "2019-03-21T18:00:00.000Z/2019-03-23T18:00:00.000Z",
+          //currentTime: Date.parse("2019-03-21T18:00:00.000Z"),
           timeInterval: "2015-09-01T18:00:00.000Z/2015-09-03T18:00:00.000Z",
-          period: "PT1H",
-          currentTime: Date.parse("2015-09-01T18:00:00.000Z")
+          currentTime: Date.parse("2015-09-01T18:00:00.000Z"),
+          period: "PT1H",          
       },
-      //timeDimensionControl: true,
+      timeDimensionControl: true,
+      
       
       //MODIFICAR PARÁMETROS PARA INTENTAR ACELERAR LA SECUENCIA
-      timeDimensionControlOptions: {
-	playerOptions: {
-          minBufferReady: 10,
-	  buffer: 10,
-          //transitionTime: 250,
-        }
-      },
+      timeDimensionControlOptions:{
+          loopButton: true,
+          playerOptions:{
+              //transitionTime: 250, //(250= 4fps)
+              buffer: 50,
+              //minBufferReady: 100,
+          }
+      }
   });
-  
-  L.control.timeDimension({
-    loopButton: true,
-    speedStep: 0.5,//intervalos de velocidad
-    timeSteps: 1,//intervalos de tiempo
-  }).addTo(map);
-
-  /*var T_2mTimeLayer = L.timeDimension.layer.wms(T_2m, {
-    updateTimeDimension: true,
-  }).addTo(map);*/
-
-  
+    
   //añade un control de escala
   L.control.scale().addTo(map);
   
   //Mapas base
+  //var foo = catastro.getLayer("OI.MosaicElement");
   var baseLayers = {
       //"OrtoFoto": ortofoto,      
       //"CurvasNivel": outdoors,            
-      //"Callejero": streets,      
-      'Municipios': municipios,
+      //"Callejero": streets,
+      //"Municipios": municipios,
+      'Catastro': catastro.getLayer("OI.MosaicElement"), //lo contrario, NO FUNCIONA!!
   };
   
   //Capas de informacion  
@@ -422,28 +482,28 @@
     'T_sfc': L.timeDimension.layer.wms(T_sfc),
     'p_sfc': L.timeDimension.layer.wms(p_sfc),
     'slp': L.timeDimension.layer.wms(slp),*/
-    'testLayerIbiza': L.timeDimension.layer.wms(testLayer),
-    'T_2m': L.timeDimension.layer.wms(T_2m),
-    'Td_2m': L.timeDimension.layer.wms(Td_2m),
-    'r_v_2m': L.timeDimension.layer.wms(r_v_2m),
-    'q_2m': L.timeDimension.layer.wms(q_2m),
-    'rh_2m': L.timeDimension.layer.wms(rh_2m),
-    'u_10m_gr': L.timeDimension.layer.wms(u_10m_gr),
-    'v_10m_gr': L.timeDimension.layer.wms(v_10m_gr),
-    'u_10m_tr': L.timeDimension.layer.wms(u_10m_tr),
-    'v_10m_tr': L.timeDimension.layer.wms(v_10m_tr),
-    'ws_10m': L.timeDimension.layer.wms(ws_10m),
-    'wd_10m': L.timeDimension.layer.wms(wd_10m),
-    'precip_g': L.timeDimension.layer.wms(precip_g),
-    'precip_c': L.timeDimension.layer.wms(precip_c),
-    'SW_d': L.timeDimension.layer.wms(SW_d),
-    'LW_d': L.timeDimension.layer.wms(LW_d),
-    'albedo': L.timeDimension.layer.wms(albedo),
-    'SH': L.timeDimension.layer.wms(SH),
-    'LH': L.timeDimension.layer.wms(LH),
-    'u_star': L.timeDimension.layer.wms(u_star),
-    'LWP': L.timeDimension.layer.wms(LWP),
-    'IWP': L.timeDimension.layer.wms(IWP),
+    'testLayerIbiza': L.timeDimension.layer.wms(testLayer, {cache:50}),
+    'T_2m': L.timeDimension.layer.wms(T_2m, {cache:50}),
+    /*'Td_2m': L.timeDimension.layer.wms(Td_2m, {cache:50}),
+    'r_v_2m': L.timeDimension.layer.wms(r_v_2m, {cache:50}),
+    'q_2m': L.timeDimension.layer.wms(q_2m, {cache:50}),
+    'rh_2m': L.timeDimension.layer.wms(rh_2m, {cache:50}),
+    'u_10m_gr': L.timeDimension.layer.wms(u_10m_gr, {cache:50}),
+    'v_10m_gr': L.timeDimension.layer.wms(v_10m_gr, {cache:50}),
+    'u_10m_tr': L.timeDimension.layer.wms(u_10m_tr, {cache:50}),
+    'v_10m_tr': L.timeDimension.layer.wms(v_10m_tr, {cache:50}),
+    'ws_10m': L.timeDimension.layer.wms(ws_10m, {cache:50}),
+    'wd_10m': L.timeDimension.layer.wms(wd_10m, {cache:50}),
+    'precip_g': L.timeDimension.layer.wms(precip_g, {cache:50}),
+    'precip_c': L.timeDimension.layer.wms(precip_c, {cache:50}),
+    'SW_d': L.timeDimension.layer.wms(SW_d, {cache:50}),
+    'LW_d': L.timeDimension.layer.wms(LW_d, {cache:50}),
+    'albedo': L.timeDimension.layer.wms(albedo, {cache:50}),
+    'SH': L.timeDimension.layer.wms(SH), {cache:50},
+    'LH': L.timeDimension.layer.wms(LH), {cache:50},
+    'u_star': L.timeDimension.layer.wms(u_star), {cache:50},
+    'LWP': L.timeDimension.layer.wms(LWP), {cache:50},
+    'IWP': L.timeDimension.layer.wms(IWP), {cache:50},*/
     /*'LandMask': L.timeDimension.layer.wms(LandMask),
     'LandUse': L.timeDimension.layer.wms(LandUse),
     'SeaIce': L.timeDimension.layer.wms(SeaIce),
@@ -459,10 +519,25 @@
     'v_tr_p': L.timeDimension.layer.wms(v_tr_p),*/
   };
   
-  //añade un control de capas
-  L.control.layers(overlays, baseLayers).addTo(map);
   
+  //incluir leyenda
+    var testLegend = L.control({
+        position: 'bottomright'
+    });
+    testLegend.onAdd = function(map) {
+        var src = testWMS + "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=sea_water_velocity&PALETTE=rainbow&colorscalerange=0,0.4";
+        var div = L.DomUtil.create('div', 'info legend');
+        div.innerHTML +=
+            '<img src="' + src + '" alt="legend">';
+        return div;
+    };
+    testLegend.addTo(map);  
   
+    
+  //añade un control de capas        
+    var capas = L.control.layers(overlays,baseLayers).addTo(map);      
+  
+
   //añade un marcador
   //www.etsii.ull.es
   L.marker([28.4829825, -16.3220933]).addTo(map).

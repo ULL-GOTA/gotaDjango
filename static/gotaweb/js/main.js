@@ -349,7 +349,8 @@
       //Archipiélago canario            
       center: [28.25, -15.82],
       zoom: 7.5,
-      layers: ortofoto, //Capa por defecto.      
+   //   layers: ortofoto, //Capa por defecto.      
+      layers: streets, //Capa por defecto.      
       // (plugin leaflet.TimeDimension)
       timeDimension: true,
       timeDimensionOptions: {
@@ -371,9 +372,9 @@
   //Mapas base
   var baseLayers = {
       //"OrtoFoto": ortofoto,      
-      //"CurvasNivel": outdoors,            
-      //"Callejero": streets,      
-      'Municipios': municipios,
+    //  "CurvasNivel": outdoors,            
+     // "Callejero": streets,      
+     // 'Municipios': municipios,
   };
   
   //Capas de informacion  

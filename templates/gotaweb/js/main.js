@@ -139,8 +139,8 @@
         //leg=[]; //vector con las leyendas
         
         //CUIDADO CON LAS CAPAS QUE TENEMOS QUE IGNORAR!!
-        //for (var i = 2; i < layerNodes.length; i++) {
-        for (var i = 12; i < 13; i++) {
+        for (var i = 2; i < layerNodes.length; i++) {
+        //for (var i = 12; i < 13; i++) {
             //La siguiente variable recoge los NOMBRES de las capas,
             // que es realmente lo que interesa
             nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         

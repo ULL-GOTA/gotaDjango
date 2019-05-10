@@ -82,10 +82,10 @@
         });
             //********************************
       
-    /*PRUEBAS PLUGIN TimeDimension IBIZA **********
-    var testWMS= "http://thredds.socib.es/thredds/wms/observational/hf_radar/hf_radar_ibiza-scb_codarssproc001_L1_agg/hf_radar_ibiza-scb_codarssproc001_L1_agg_best.ncd",
+    //******* PRUEBAS PLUGIN TimeDimension IBIZA **********
+    var testWMS= "http://thredds.socib.es/thredds/wms/observational/hf_radar/hf_radar_ibiza-scb_codarssproc001_L1_agg/hf_radar_ibiza-scb_codarssproc001_L1_agg_best.ncd";
     
-    testLayer = L.tileLayer.wms(testWMS, {
+    /*testLayer = L.tileLayer.wms(testWMS, {
 	  layers: 'sea_water_velocity',
 	  version: '1.3.0',
 	  format: 'image/png',
@@ -110,7 +110,7 @@
     
     var gotaweb_WMS = L.WMS.source('http://10.6.5.230:8080/ncWMS2/wms', {
        crs: crs4326,
-       opacity: 0.6,
+       opacity: 0.8,
        format: 'image/png',
     });
     
@@ -122,25 +122,28 @@
     //No esta listo (onreadystatechange) hasta que se ejecuta
     //todo el resto del codigo JS.
     xhttp.onreadystatechange = function() {
-        //if (this.readyState == 4 && this.status == 200) {
+        if (this.readyState == 4 && this.status == 200) {
             myFunction(this);
-        //}        
+            //alert(Object.entries(capas));//_layers,_baseLayersList
+            //alert(Object.values(capas._layers));
+            
+        }        
     };
-    
-    //xhttp.open("GET", "http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer?request=GetCapabilities&service=WMS", true);
-    xhttp.open("GET", "http://10.6.5.230:8080/ncWMS2/wms?request=GetCapabilities&service=WMS", true);
+
+    xhttp.open("GET", "http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer?request=GetCapabilities&service=WMS", true);
+    //xhttp.open("GET", "http://10.6.5.230:8080/ncWMS2/wms?request=GetCapabilities&service=WMS", true);
     
     xhttp.send(); //se ejecuta (.onreadystatechange)
         
     function myFunction(xml) {
         var xmlDoc = xml.responseXML;
         var layerNodes = xmlDoc.getElementsByTagName("Layer");               
-        var nam, tit, layer,tdLayer; //nombre y titulo de las capas.
-        //leg=[]; //vector con las leyendas
-        
-        //CUIDADO CON LAS CAPAS QUE TENEMOS QUE IGNORAR!!
-        for (var i = 2; i < layerNodes.length; i++) {
-        //for (var i = 12; i < 13; i++) {
+        var nam, tit; //??????
+        leg=[]; //vector con direcc. leyendas
+        var i = 1; //CUIDADO!. CAPA A PARTIR DE LA CUAL BUSCAMOS en GetCapabilities
+                
+        //for (var i = 1; i < layerNodes.length; i++) {
+        for (i; i < 4; i++) {
             //La siguiente variable recoge los NOMBRES de las capas,
             // que es realmente lo que interesa
             nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
@@ -149,19 +152,19 @@
             tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);            
             
             //Leyenda asociada a la capa (OJO, NO SIEMPRE EXISTE)
-            /*if (var leyenda =  layerNodes[i].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href')){
-                leg.push(leyenda);
-            }*/
-            //leg.push(layerNodes[i].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href'));
+            //HAY QUE ARREGLARLO, PORQUE SI NO, NO CARGA TODAS LAS CAPAS
+            leg.push(layerNodes[i].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href'));
+                        
+            /*L.timeDimension.layer.wms(testLayer, {cache:50});            
+            timeDimension NO FUNCIONA con plugin de getLayer!!
+            tdLayer = L.timeDimension.layer.wms(layer, {cache:50});*/
             
-            //L.timeDimension.layer.wms(testLayer, {cache:50});            
-            layer = gotaweb_WMS.getLayer(nam);
-            
-            //timeDimension NO FUNCIONA con plugin de getLayer!!
-            //tdLayer = L.timeDimension.layer.wms(layer, {cache:50});
-            
+            layer = geologico.getLayer(nam); //ojo!
             capas.addBaseLayer(layer,tit);
+            //alert (leg[i-1]);
             
+            // Las direcciones de las leyendas se pueden guardar,
+            //pero CAMBIAN CON EVENTOS!!
             
         }        
     };
@@ -219,27 +222,60 @@
       //"Geologico": geologico,
       //"PinoCanario": pinar,    
       //'testLayerIbiza': L.timeDimension.layer.wms(testLayer, {cache:50}),      
-      'temp' : L.timeDimension.layer.wms(T_2m, {cache:50}),
+      //'temp' : L.timeDimension.layer.wms(T_2m, {cache:50}),
   };
   /*Object.defineProperty(overlays,'temp',{
       value: L.timeDimension.layer.wms(T_2m, {cache:50}),
   });*/
 
   
-  /***********incluir leyenda
+  /***********incluir leyenda *************/
     var testLegend = L.control({
-        position: 'bottomright'
-    });
-    testLegend.onAdd = function(map) {
-        var src = testWMS + "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=sea_water_velocity&PALETTE=rainbow&colorscalerange=0,0.4";
-        var div = L.DomUtil.create('div', 'info legend');
-        div.innerHTML +=
-            '<img src="' + src + '" alt="legend">';
-        return div;
-    };
-    testLegend.addTo(map);  **************/
-  
+        position: 'bottomright',
+    }),
     
+    leyenda = testWMS + "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=sea_water_velocity&PALETTE=rainbow&colorscalerange=0,0.4",
+    
+    litocolor = "http://mapas.igme.es/servicios/WMS/Legends/Geo1M_LitologiasColor.png",
+    
+    litotramas = "http://mapas.igme.es/servicios/WMS/Legends/Geo1M_LitologiasTramas.png",
+    
+    fallas = "http://mapas.igme.es/servicios/WMS/Legends/Geo1M_ContactosFallas.png";
+    
+
+    
+   testLegend.onAdd = function(){        
+        //var src = testWMS + "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=sea_water_velocity&PALETTE=rainbow&colorscalerange=0,0.4";
+        var div = L.DomUtil.create('div', 'info legend');
+        div.innerHTML =
+            '<img src="' + leyenda + '" alt="legend">';
+        return div;
+    }
+    
+    testLegend.addTo(map);/****************/                  
+        
+    /*map.on('baselayerchange', function(LCtrlEvent){ //######### MANUAL #########
+        if (LCtrlEvent.layer == pinar){
+            leyenda = fallas;
+            testLegend.addTo(map); //Carga de nuevo el testLegend.onAdd                             
+        }
+
+        else if (LCtrlEvent.layer == comarcas) {
+            leyenda = litotramas;
+            testLegend.addTo(map); //Carga de nuevo el testLegend.onAdd                   
+        }
+    });*/
+    
+    map.on('baselayerchange', function(LCtrlEvent){  //######### AUTO #########
+        for (var i = 0; i < capas._layers.length; i++) {
+            if (LCtrlEvent.name == capas._layers[i].name){
+                leyenda = leg[i];
+                testLegend.addTo(map);
+            }
+        }
+    });
+  
+  
   //añade un control de capas        
     var capas = L.control.layers(overlays,baseLayers).addTo(map);
 

@@ -53,7 +53,7 @@
 	  crs: crs32628,
 	  }),
 	  
-	  streets = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiYWx1MDEwMTA2OTkzNyIsImEiOiJjanNvb2hkY3gwbXFyM3lxbHdtY25wZnI2In0.wE4Ct1TZ5cBmcg0QabheJw', { attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a> ', maxZoom: 18, id: 'mapbox.streets' }),//, accessToken: 'your.mapbox.access.token'                
+	  //streets = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiYWx1MDEwMTA2OTkzNyIsImEiOiJjanNvb2hkY3gwbXFyM3lxbHdtY25wZnI2In0.wE4Ct1TZ5cBmcg0QabheJw', { attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a> ', maxZoom: 18, id: 'mapbox.streets' }),//, accessToken: 'your.mapbox.access.token'                
 	  
 	  outdoors = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiYWx1MDEwMTA2OTkzNyIsImEiOiJjanNvb2hkY3gwbXFyM3lxbHdtY25wZnI2In0.wE4Ct1TZ5cBmcg0QabheJw', { attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a> ', maxZoom: 18, id: 'mapbox.outdoors'}),//, accessToken: 'your.mapbox.access.token' .addTo(map);  
 	  
@@ -102,11 +102,16 @@
     
     //PROBANDO PLUGIN 'leaflet.wms' (capa virtual)    
 
-	var catastro = L.WMS.source("http://www.ign.es/wms-inspire/pnoa-ma?SERVICE=WMS&", {
-   		  opacity: 0.5,
+	var pruebaLegend = L.WMS.source("https://neo.sci.gsfc.nasa.gov/wms/wms", {
+   		  crs: crs4326,
+          format: 'image/png',
+          opacity: 0.5,          
 	});	
     
-    var geologico = L.WMS.source("http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer");
+    var geologico = L.WMS.source("http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer", {   	
+          format: 'image/png',
+          opacity: 0.5,          
+	});
     
     var gotaweb_WMS = L.WMS.source('http://10.6.5.230:8080/ncWMS2/wms', {
        crs: crs4326,
@@ -125,49 +130,48 @@
         if (this.readyState == 4 && this.status == 200) {
             myFunction(this);
             //alert(Object.entries(capas));//_layers,_baseLayersList
-            //alert(Object.values(capas._layers));
-            
+            //alert(Object.values(capas._layers));            
         }        
     };
-
+    
+    //xhttp.open("GET", "https://neo.sci.gsfc.nasa.gov/wms/wms", true);
+    
     xhttp.open("GET", "http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer?request=GetCapabilities&service=WMS", true);
+    
     //xhttp.open("GET", "http://10.6.5.230:8080/ncWMS2/wms?request=GetCapabilities&service=WMS", true);
     
     xhttp.send(); //se ejecuta (.onreadystatechange)
         
     function myFunction(xml) {
         var xmlDoc = xml.responseXML;
-        var layerNodes = xmlDoc.getElementsByTagName("Layer");               
-        var nam, tit; //??????
+        var layerNodes = xmlDoc.getElementsByTagName("Layer");        
+        var nam, tit, legOK;
         leg=[]; //vector con direcc. leyendas
-        var i = 1; //CUIDADO!. CAPA A PARTIR DE LA CUAL BUSCAMOS en GetCapabilities
                 
-        //for (var i = 1; i < layerNodes.length; i++) {
-        for (i; i < 4; i++) {
+        for (var i=0; i < layerNodes.length; i++) {
+        //for (i; i < 34; i++) {
             //La siguiente variable recoge los NOMBRES de las capas,
             // que es realmente lo que interesa
-            nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
-            
-            //Descripcion de la capa
-            tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);            
-            
-            //Leyenda asociada a la capa (OJO, NO SIEMPRE EXISTE)
-            //HAY QUE ARREGLARLO, PORQUE SI NO, NO CARGA TODAS LAS CAPAS
-            leg.push(layerNodes[i].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href'));
-                        
-            /*L.timeDimension.layer.wms(testLayer, {cache:50});            
-            timeDimension NO FUNCIONA con plugin de getLayer!!
-            tdLayer = L.timeDimension.layer.wms(layer, {cache:50});*/
-            
-            layer = geologico.getLayer(nam); //ojo!
-            capas.addBaseLayer(layer,tit);
-            //alert (leg[i-1]);
-            
-            // Las direcciones de las leyendas se pueden guardar,
-            //pero CAMBIAN CON EVENTOS!!
-            
-        }        
-    };
+            if (layerNodes[i].hasAttribute('queryable')){
+                nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
+                
+                //Descripcion de la capa
+                tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);            
+
+                layer = geologico.getLayer(nam); //OJO, PRUEBAS!
+                capas.addBaseLayer(layer,tit);
+                            
+                //Leyenda asociada a la capa (NO SIEMPRE EXISTE)                
+                legOK = layerNodes[i].getElementsByTagName("LegendURL");
+                leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null) ;
+                
+                /*L.timeDimension.layer.wms(testLayer, {cache:50});            
+                timeDimension NO FUNCIONA con plugin de getLayer!!
+                tdLayer = L.timeDimension.layer.wms(layer, {cache:50});*/
+            }//end_if
+        }//end_for
+        alert('Capas habilitadas.');           
+    };//end_function
 
   //Se añaden las capas (en la 2º forma)
   var map = L.map('map', {                        
@@ -211,7 +215,7 @@
       //"OrtoFoto": ortofoto,      
       //"CurvasNivel": outdoors,            
       //"Callejero": streets,
-      "Municipios": municipios,
+      //"Municipios": municipios,
       //'Catastro': catastro.getLayer("OI.MosaicElement"), //lo contrario, NO FUNCIONA!!
   };
   
@@ -230,51 +234,31 @@
 
   
   /***********incluir leyenda *************/
-    var testLegend = L.control({
+    var leyenda,    
+    testLegend = L.control({
         position: 'bottomright',
-    }),
-    
-    leyenda = testWMS + "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=sea_water_velocity&PALETTE=rainbow&colorscalerange=0,0.4",
-    
-    litocolor = "http://mapas.igme.es/servicios/WMS/Legends/Geo1M_LitologiasColor.png",
-    
-    litotramas = "http://mapas.igme.es/servicios/WMS/Legends/Geo1M_LitologiasTramas.png",
-    
-    fallas = "http://mapas.igme.es/servicios/WMS/Legends/Geo1M_ContactosFallas.png";
-    
+    });
 
-    
    testLegend.onAdd = function(){        
-        //var src = testWMS + "?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetLegendGraphic&LAYER=sea_water_velocity&PALETTE=rainbow&colorscalerange=0,0.4";
         var div = L.DomUtil.create('div', 'info legend');
-        div.innerHTML =
-            '<img src="' + leyenda + '" alt="legend">';
+        //if (leyenda!=''){
+            div.innerHTML = '<img src="' + leyenda + '" alt="legend">';
+        //}
         return div;
-    }
+    };
     
-    testLegend.addTo(map);/****************/                  
-        
-    /*map.on('baselayerchange', function(LCtrlEvent){ //######### MANUAL #########
-        if (LCtrlEvent.layer == pinar){
-            leyenda = fallas;
-            testLegend.addTo(map); //Carga de nuevo el testLegend.onAdd                             
-        }
-
-        else if (LCtrlEvent.layer == comarcas) {
-            leyenda = litotramas;
-            testLegend.addTo(map); //Carga de nuevo el testLegend.onAdd                   
-        }
-    });*/
-    
-    map.on('baselayerchange', function(LCtrlEvent){  //######### AUTO #########
+    testLegend.addTo(map);
+            
+    //evento (cambio de capa-base) **********
+    map.on('baselayerchange', function(LCtrlEvent){
         for (var i = 0; i < capas._layers.length; i++) {
             if (LCtrlEvent.name == capas._layers[i].name){
                 leyenda = leg[i];
                 testLegend.addTo(map);
             }
         }
-    });
-  
+    });   //#########  #########
+    
   
   //añade un control de capas        
     var capas = L.control.layers(overlays,baseLayers).addTo(map);

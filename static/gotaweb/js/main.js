@@ -145,7 +145,7 @@
         alert('Capas habilitadas.');           
     };//end_function
 
-  //Se añaden las capas (en la 2º forma)
+  //Se añaden las captas (en la 2º forma)
   var map = L.map('map', {                        
       //Archipiélago canario:            
       center: [28.25, -15.82],
@@ -209,6 +209,19 @@
         }
     });   //#########  #########
     
+    testLegend.addTo(map);
+            
+    //evento (cambio de capa-base) **********
+    map.on('baselayerchange', function(LCtrlEvent){
+        for (var i = 0; i < capas._layers.length; i++) {
+            if (LCtrlEvent.name == capas._layers[i].name){
+                leyenda = leg[i];
+                testLegend.addTo(map);
+            }
+        }
+    });   //#########  #########
+    
+  
   //añade un control de capas        
     var capas = L.control.layers(baseLayers, overlays).addTo(map);
 

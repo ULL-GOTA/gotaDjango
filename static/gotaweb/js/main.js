@@ -152,7 +152,7 @@
         //for (i; i < 34; i++) {
             //La siguiente variable recoge los NOMBRES de las capas,
             // que es realmente lo que interesa
-          //  if (layerNodes[i].hasAttribute('queryable')){
+            if (layerNodes[i].hasAttribute('queryable')){
                 nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
                 
                 //Descripcion de la capa
@@ -169,7 +169,7 @@
                 /*L.timeDimension.layer.wms(testLayer, {cache:50});            
                 timeDimension NO FUNCIONA con plugin de getLayer!!
                 tdLayer = L.timeDimension.layer.wms(layer, {cache:50});*/
-           // }//end_if
+            }//end_if
         }//end_for
         alert('Capas habilitadas.');           
     };//end_function
@@ -213,7 +213,7 @@
   //Mapas base
   //var foo = catastro.getLayer("OI.MosaicElement");
   var baseLayers = {
-	  "Pruebas": albedo,
+	//"Pruebas": albedo,
       //"OrtoFoto": ortofoto,      
       //"CurvasNivel": outdoors,            
       //"Callejero": streets,

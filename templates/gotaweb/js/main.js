@@ -136,9 +136,9 @@
     
     //xhttp.open("GET", "https://neo.sci.gsfc.nasa.gov/wms/wms", true);
     
-    xhttp.open("GET", "http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer?request=GetCapabilities&service=WMS", true);
+    //xhttp.open("GET", "http://mapas.igme.es/gis/services/Cartografia_Geologica/IGME_Geologico_1M/MapServer/WMSServer?request=GetCapabilities&service=WMS", true);
     
-    //xhttp.open("GET", "http://10.6.5.230:8080/ncWMS2/wms?request=GetCapabilities&service=WMS", true);
+    xhttp.open("GET", "http://10.6.5.230:8080/ncWMS2/wms?request=GetCapabilities&service=WMS", true);
     
     xhttp.send(); //se ejecuta (.onreadystatechange)
         
@@ -158,7 +158,9 @@
                 //Descripcion de la capa
                 tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);            
 
-                layer = geologico.getLayer(nam); //OJO, PRUEBAS!
+                //layer = pruebaLegend.getLayer(nam); //OJO, PRUEBAS!
+                layer = gotaweb_WMS.getLayer(nam); //OJO, PRUEBAS!
+                
                 capas.addBaseLayer(layer,tit);
                             
                 //Leyenda asociada a la capa (NO SIEMPRE EXISTE)                

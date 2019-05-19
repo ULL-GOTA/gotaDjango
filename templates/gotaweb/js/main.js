@@ -213,6 +213,6 @@
     var capas = L.control.layers(baseLayers, overlays).addTo(map);
 
   //añade un marcador: 
-  //www.etsii.ull.es
+  // www.etsii.ull.es
   L.marker([28.4829825, -16.3220933]).addTo(map).
       bindPopup('Etsii-ULL');//.openPopup();       

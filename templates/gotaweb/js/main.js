@@ -7,11 +7,11 @@
 	  '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');      
 	  
       //Creación sistema referencia EPSG:32628 (WGS-84/UTM-28N), para mapas de Grafcan.########
-      var crs32628 = new L.Proj.CRS('EPSG:32628',
-	  '+proj=utm +zone=28 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');	                  
+//      var crs32628 = new L.Proj.CRS('EPSG:32628',
+//	  '+proj=utm +zone=28 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');	                  
 	  
       
-      //########## Adicion de capa(s) base: ##############
+      //########## Adición de capa(s) base: ##############
       
       // 1º) Directamente con openstreetmap ##########
       
@@ -22,7 +22,7 @@
 	  var outdoors = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiYWx1MDEwMTA2OTkzNyIsImEiOiJjanNvb2hkY3gwbXFyM3lxbHdtY25wZnI2In0.wE4Ct1TZ5cBmcg0QabheJw', { attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a> ', maxZoom: 18, id: 'mapbox.outdoors'});//, accessToken: 'your.mapbox.access.token' .addTo(map);  
       
       
-      //########## Adicion de OVERLAYS: ##############
+      //########## Adición de OVERLAYS (manualmente): ##############
       /*
       var ortofoto = L.tileLayer.wms('https://idecan1.grafcan.es/ServicioWMS/OrtoExpress?',{
 	  layers: 'ortoexpress',
@@ -33,8 +33,8 @@
 	  version: '1.3.0',                
 	  crs: crs32628,
 	  }),
-	  
-	  municipios = L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/CARTO_EST?',{
+	
+        municipios = L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/CARTO_EST?',{
 	  layers: 'MUN',
 	  //styles: 'default',
 	  //continuousWorld: true,
@@ -43,7 +43,7 @@
 	  version: '1.3.0',                
 	  crs: crs32628,
 	  }),
-	          
+		          
 	  pinar = L.tileLayer.wms('http://wms.magrama.es/sig/Biodiversidad/MFE27/wms.aspx', {
 	      layers: 'Pinar de pino canario (Pinus canariensis)',//*nombre capa (layer queryable al consultar la 'get capabilities' de la web
 	      format: 'image/png',
@@ -67,18 +67,7 @@
             opacity: 0.6,
             format: 'image/png', 
         });*/
-            //###########################
 
-    //#### PROBANDO PLUGIN 'leaflet.wms' (capa virtual)##########
-    /*
-    var metocean = L.WMS.source("https://ogcie.iblsoft.com/metocean/wms", {   	
-          //crs: crs4326, ## No se aprecian cambios.
-          format: 'image/png',
-          opacity: 0.3,
-          transparent: true,
-          //tiled: true,
-	});
-	*/
     //##############################################
     //##############################################
     
@@ -89,8 +78,7 @@
     //WMS-SERVER (GetCapabilities)
     var xhttp = new XMLHttpRequest();
     
-    //No esta listo (onreadystatechange) hasta que se ejecuta
-    //todo el resto del codigo JS.
+    //Función a ejecutar cuando server responde OK.
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             myFunction(this);          
@@ -101,16 +89,29 @@
     xhttp.open("GET", test_WMS + '?request=GetCapabilities&service=WMS', true);
     
     xhttp.send(); //se ejecuta (.onreadystatechange)
-        
+    
+    //variables globales
+    var ejeZ = []; //vector con alturas de cada capa
+    //var defaultZ=[]; //Vector con alturas por defecto
+
     function myFunction(xml) {
         var xmlDoc = xml.responseXML;
-        var layerNodes = xmlDoc.getElementsByTagName("Layer");        
-        var nam, tit, legOK, layer, tdLayer;
+        var layerNodes = xmlDoc.getElementsByTagName("Layer");
+	var OnlineResource= xmlDoc.getElementsByTagName("OnlineResource");
+        var nam, tit, legOK, layer, tdLayer, n, dim;
         leg=[]; //vector con direcc. leyendas
-                
-        for (var i=0; i < layerNodes.length; i++) {                    
+	//ejeZ=[]; //vector con alturas de cada capa
+	defaultZ=[]; //Vector con alturas por defecto
+	//var dim={};
+        
+        for (var i=0; i < layerNodes.length; i++) { 
+	    //ejeZ[i]= null;	//condicion inicial
+	    
             if (layerNodes[i].hasAttribute('queryable')){
-                
+            	
+		ejeZ.push(0);
+		defaultZ.push(0);
+
                 //NOMBRES de las capas,
                 nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
                 
@@ -126,30 +127,44 @@
                     attribution: 'gotaWeb 1.0 -ULL-'
                 });
 
-                //##############################################
-                //layer = gotaweb_WMS.getLayer(nam);
-                //layer = metocean.getLayer(nam); //OJO, PRUEBAS!   
-                //timeDimension NO FUNCIONA con plugin de getLayer!!
-                //###############################################
-                
+                //Dimensión de altura/profundidad (elevationDimension)
+
+		dim= layerNodes[i].getElementsByTagName("Dimension");		
+		//alert(layerNodes[i].getElementsByTagName("Dimension").length);
+		n= 0;
+		//ejeZ[i]= 0;
+		//defaultZ[i]= 0;
+		while (n < dim.length) {		  		  		
+		  //defaultZ[i]= null;		//condicion inicial
+		  if (dim[n].getAttribute('name')== 'elevation'){
+		    //alert(dim[n].childNodes[0].nodeValue);
+		    ejeZ[ejeZ.length-1]= dim[n].childNodes[0].nodeValue.split(",");
+		    defaultZ[defaultZ.length-1]= (parseInt(dim[n].hasAttribute('default') ? dim[n].getAttribute('default') : 0));
+		    //alert(typeof ejeZ[ejeZ.length-1][1]);
+		  }
+		  n++;
+		}
+
                 //timeDimension-plugin
                 tdLayer = L.timeDimension.layer.wms(layer, {cache:100, updateTimeDimension: true}); 
                                 
-                capas.addBaseLayer(tdLayer,tit);
-                            
+                capas.addBaseLayer(tdLayer,tit);	//Adición de capa al control de capas                                        
+
                 //Leyenda asociada a la capa (NO SIEMPRE EXISTE)                
                 legOK = layerNodes[i].getElementsByTagName("LegendURL");
-                leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null) ;                                                
+                leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);                                              
             }//end_if
+	    //alert('i= '+i+' ... '+ ejeZ[i]);
         }//end_for
-        alert('Capas habilitadas.');           
+        //alert('Capas habilitadas.');  //Confirmación carga capas
     };//end_function
+
 
   //Se añaden las capas (en la 2º forma)
   var map = L.map('map', {                        
       //Archipiélago canario:            
       center: [28.25, -15.82],
-      zoom: 7.5,
+      zoom: 4,
       layers: outdoors, //Capa por defecto.      
       
       // #####  (plugin leaflet.TimeDimension) ##########
@@ -174,16 +189,24 @@
   var baseLayers = {      
       //"OrtoFoto": ortofoto,      
       //"CurvasNivel": outdoors,                  
-      //"Municipios": municipios,
   };
   
   //Capas de informacion  ## OVERLAYS ##
-  var overlays = {          
+  var overlays = {
+      //"Municipios canarios": municipios,          
       //"PinoCanario": pinar,
       //'temp' : L.timeDimension.layer.wms(T_2m, {cache:50}),      
       //'TEST_LAYER': L.timeDimension.layer.wms(testLayer, {cache:50, updateTimeDimension: true}),
   };
-  
+
+
+  //####### incluir sliders (elevación/opacidad) ############/
+
+	var sliderElev = document.getElementById("myRange");
+	var output = document.getElementById("demo1");
+	var sliderOpacity= document.getElementById("opacidad");
+
+
   //####### incluir leyenda ############/
     var leyenda,    
     testLegend = L.control({
@@ -191,23 +214,37 @@
     });
 
    testLegend.onAdd = function(){        
-        var div = L.DomUtil.create('div', 'info legend');        
-            div.innerHTML = '<img src="' + leyenda + '" alt="legend">';        
+        var div = L.DomUtil.create('div', 'info legend');
+	leyenda!=null ? div.innerHTML = '<img src="' + leyenda + '" alt="legend">' : div.innerHTML = "<b style='background-color:white'>=== NO LEGEND! ===</b>";        
         return div;
     };
-    
-    testLegend.addTo(map);
-            
+
     //## EVENTO: cambio de capa-base #########
-    map.on('baselayerchange', function(LCtrlEvent){
-        for (var i = 0; i < capas._layers.length; i++) {
-            if (LCtrlEvent.name == capas._layers[i].name){
+
+	
+    var altura;
+    map.on('baselayerchange', function(changeLayer){
+        for (var i = 0; i < capas._layers.length; i++) {	//OJO! capas añadidas manualmente.
+            if (changeLayer.name == capas._layers[i].name){
                 leyenda = leg[i];
-                //al llamar a testLegend, se ejecuta (.onAdd)
-                testLegend.addTo(map);
-            }
-        }
-    });   //#########  #########
+                testLegend.addTo(map);			//se ejecuta testLegend.onAdd()
+		sliderOpacity.value= 50;		//condición inicial
+		sliderOpacity.oninput= function(){	//evento -cambia sliderOpacity-
+		  changeLayer.layer.setOpacity(this.value/100);
+		}
+		sliderElev.max= ejeZ[i].length-1;
+		sliderElev.value= 0;//(ejeZ[i].indexOf(defaultZ[i]); //OJO! es el número de POSICIÓN del valor "default" de ELEVATION.
+		output.innerHTML = defaultZ[i];	//condición inicial
+		altura= parseInt(ejeZ[i][sliderElev.value]);
+		sliderElev.oninput = function() {	//evento -cambia sliderElevation-
+		  output.innerHTML = parseInt(ejeZ[i][this.value]);				///////////// NO FUNCIONA el 'parseo'! ////////
+		  changeLayer.layer.setParams({elevation:parseInt(ejeZ[i][this.value])});	///////////// NO FUNCIONA el 'parseo'! ////////
+		}	//	*/
+            }//end_inf
+        }//end_for
+    });   
+
+		//#########  #########
     
   //añade un control de capas        
     var capas = L.control.layers(baseLayers, overlays).addTo(map);

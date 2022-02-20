@@ -76,8 +76,8 @@
     //var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
     var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
     
-    //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR
-    //WMS-SERVER (GetCapabilities)
+    //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR WMS-SERVER (GetCapabilities)
+
     var xhttp = new XMLHttpRequest();
     
     //Función a ejecutar cuando server responde OK.
@@ -86,15 +86,11 @@
             myFunction(this);          
         }        
     };
-    
+
     //###### consultar 'GetCapabilities' WMS Server #########
     xhttp.open("GET", test_WMS + '?request=GetCapabilities&service=WMS', true);
     
     xhttp.send(); //se ejecuta (.onreadystatechange)
-    
-    //variables globales
-    var ejeZ = []; //vector con alturas de cada capa
-    //var defaultZ=[]; //Vector con alturas por defecto
 
     function myFunction(xml) {
         var xmlDoc = xml.responseXML;
@@ -102,69 +98,54 @@
 	      var OnlineResource= xmlDoc.getElementsByTagName("OnlineResource");
         var nam, tit, legOK, layer, tdLayer, n, dim;
         leg=[]; //vector con direcc. leyendas
-	      //ejeZ=[]; //vector con alturas de cada capa
+	      ejeZ=[]; //vector con alturas de cada capa
 	      defaultZ=[]; //Vector con alturas por defecto
 	      //var dim={};
         
-        //for (var i=0; i < layerNodes.length; i++) { 
-        for (var i=0; i < 10; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CPAS ====================
-	      //ejeZ[i]= null;	//condicion inicial
+        for (var i=0; i < layerNodes.length; i++) { 
+        //for (var i=0; i < 10; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CAPAS ====================	      
 	    
           if (layerNodes[i].hasAttribute('queryable')){            
-		        ejeZ.push(0);
-		        defaultZ.push(0);
+		        ejeZ.push(null);
+		        defaultZ.push(null);
 
-                //NOMBRES de las capas,
-                nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
+            //NOMBRES de las capas,
+            nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
                 
-                //Descripcion de la capa
-                tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
+            //Descripcion de la capa
+            tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
                 
-                layer = L.tileLayer.wms(test_WMS, {
-                    layers: nam,
-                    format: 'image/png',
-                    transparent: true,
-                    opacity: 0.5,
-                    crs: L.CRS.EPSG4326,
-                    attribution: 'gotaWeb 1.0 -ULL-'
-                });
+            layer = L.tileLayer.wms(test_WMS, {
+              layers: nam,
+              format: 'image/png',
+              transparent: true,
+              opacity: 0.5,
+              crs: L.CRS.EPSG4326,
+              attribution: 'gotaWeb 1.0 -ULL-'
+            });
 
-                //Dimensión de altura/profundidad (elevationDimension)
+            //Dimensión de altura/profundidad (elevationDimension)
+		        dim= layerNodes[i].getElementsByTagName("Dimension");
+            n= 0;
+            while (n < dim.length) {       		  
+		          if (dim[n].getAttribute('name')== 'elevation'){
+                ejeZ[ejeZ.length-1]= dim[n].childNodes[0].nodeValue.split(',');
+                defaultZ[defaultZ.length-1]= dim[n].getAttribute('default');
+		          }
+		          n++;      
+		        }
 
-		//INTENTAR ESCOGER NODOS dimension="elevation" en una sola instrucción
-		//el problema de leer los valores de altura, es que están todos incluidos en una STRING!!
+            //timeDimension-plugin
+            tdLayer = L.timeDimension.layer.wms(layer, {cache:100, setDefaultTime:true});                                 
+            capas.addBaseLayer(tdLayer,tit);	//Adición de capa al control de capas                                        
 
-		dim= layerNodes[i].getElementsByTagName("Dimension");
-		n= 0;
-		//ejeZ[i]= 0;
-		//defaultZ[i]= 0;
-		while (n < dim.length) {		  		  		
-		  //defaultZ[i]= null;		//condicion inicial
-		  if (dim[n].getAttribute('name')== 'elevation'){
-        ejeZ[i]= dim[n].childNodes[0].nodeValue.split(',');
-        //alert (ejeZ[i][1]);
-		    //ejeZ[ejeZ.length-1]= dim[n].childNodes[0].nodeValue.split(","); //falla el 'split'
-		    //alert ((dim[n].childNodes[0].nodeValue[1]));
-		    //defaultZ[defaultZ.length-1]= (parseInt(dim[n].hasAttribute('default') ? dim[n].getAttribute('default') : 0));
-		    //alert(typeof ejeZ[ejeZ.length-1][1]);
-		  }
-		  n++;
-		}
-
-                //timeDimension-plugin
-                tdLayer = L.timeDimension.layer.wms(layer, {cache:100, setDefaultTime:true}); 
-                                
-                capas.addBaseLayer(tdLayer,tit);	//Adición de capa al control de capas                                        
-
-                //Leyenda asociada a la capa (NO SIEMPRE EXISTE)                
-                legOK = layerNodes[i].getElementsByTagName("LegendURL");
-                leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);                                              
-            }//end_if
-	    //alert('i= '+i+' ... '+ ejeZ[i]);
+            //Leyenda asociada a la capa (NO SIEMPRE EXISTE)                
+             legOK = layerNodes[i].getElementsByTagName("LegendURL");
+             leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);             
+          }//end_if
         }//end_for
         //alert('Capas habilitadas.');  //Confirmación carga capas
-    };//end_function
-
+    };//end_function    
 
   //Se añaden las capas (en la 2º forma)
   var map = L.map('map', {                        
@@ -187,7 +168,7 @@
           }
       }
   });
-    
+  
   //añade un control de escala
   L.control.scale().addTo(map);
   
@@ -214,7 +195,7 @@
 
 
   //####### incluir leyenda ############/
-    var leyenda,    
+    var leyenda;
     testLegend = L.control({
         position: 'bottomleft',
     });
@@ -227,31 +208,35 @@
 
     //## EVENTO: cambio de capa-base #########
 
-	  var altura;
+	  var k;
     map.on('baselayerchange', function(changeLayer){
-      for (var i = 0; i < capas._layers.length; i++) {	//SUSTITUIRLO POR UN WHILE o VER SI PUEDO 'LLAMAR' DIRECTAMENTE AL VECTOR DE LEYENDAS.
-        if (changeLayer.name == capas._layers[i].name){
-          //alert(capas.baseLayers.);
-          leyenda = leg[i];
-          
+      k=0; 
+      while (k < capas._layers.length){
+        //alert(capas._layers[k].name);
+        if (changeLayer.name == capas._layers[k].name){                
+          leyenda = leg[k];
           testLegend.addTo(map);			//se ejecuta testLegend.onAdd()
+
+          //OPACIDAD
           sliderOpacity.value= 50;		//condición inicial del slider
-          //changeLayer.layer.opacity=??; //condición inicial de la opacidad de la capa
+          //changeLayer.layer.setOpacity(0.5); //condición inicial de la opacidad de la capa
           sliderOpacity.oninput= function(){	//evento -cambia sliderOpacity-
             changeLayer.layer.setOpacity(this.value/100);
-          }         
-          //sliderElev.max= ejeZ[i].length-1;
-          //sliderElev.value= 0;//(ejeZ[i].indexOf(defaultZ[i]); //OJO! es el número de POSICIÓN del valor "default" de ELEVATION.
-          //output.innerHTML = defaultZ[i];	//condición inicial
-          //altura= parseInt(ejeZ[i][sliderElev.value]);
+          }
           
-          //sliderElev.oninput = function() {	//evento -cambia sliderElevation-
-		       //  output.innerHTML = parseInt(ejeZ[i][this.value]);				///////////// NO FUNCIONA el 'parseo'! ////////
-		       //  changeLayer.layer.setParams({elevation:parseInt(ejeZ[i][this.value])});	///////////// NO FUNCIONA el 'parseo'! ////////
-		      //}
+          //ALTURA          
+          sliderElev.max= ejeZ[k].length-1;
+          sliderElev.value= ejeZ[k].indexOf(defaultZ[k]); //Número de POSICIÓN del valor "default" de ELEVATION.          
+          output.innerHTML = defaultZ[k];	//condición inicial                    
+          sliderElev.oninput = function() {	//evento -cambia sliderElevation-		        
+            output.innerHTML = ejeZ[k][sliderElev.value];            
+            changeLayer.layer.setParams({elevation:ejeZ[k][sliderElev.value]});
+		      };
+          break;
         }//end_inf
-      }//end_for
-    });   
+        k++;
+      }//endWHILE 
+    });
 
 		//#########  #########
     

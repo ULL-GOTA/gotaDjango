@@ -73,8 +73,8 @@
     //##############################################
     
     //var test_WMS = "https://wms.gota-ull.net:8443/ncWMS/wms";
-    //var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
-    var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
+    var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
+    //var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
 
 
     //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR WMS-SERVER (GetCapabilities)
@@ -97,10 +97,11 @@
         var xmlDoc = xml.responseXML;
         var layerNodes = xmlDoc.getElementsByTagName("Layer");
 	      var OnlineResource= xmlDoc.getElementsByTagName("OnlineResource");
-        var nam, tit, legOK, layer, tdLayer, n, dim;
+        var nam, tit, legOK, bboxOK, layer, tdLayer, n, dim;
         leg=[]; //vector con direcc. leyendas
 	      ejeZ=[]; //vector con alturas de cada capa
 	      defaultZ=[]; //Vector con alturas por defecto
+        bbox=[]; //vector con datos etiqueta <BoundingBox>
 	      //var dim={};
         
         for (var i=0; i < layerNodes.length; i++) { 
@@ -109,6 +110,7 @@
           if (layerNodes[i].hasAttribute('queryable')){            
 		        ejeZ.push(null);
 		        defaultZ.push(null);
+            bbox.push(null);
 
             //NOMBRES de las capas,
             nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
@@ -141,8 +143,23 @@
             capas.addBaseLayer(tdLayer,tit);	//Adición de capa al control de capas                                        
 
             //Leyenda asociada a la capa (NO SIEMPRE EXISTE)                
-             legOK = layerNodes[i].getElementsByTagName("LegendURL");
-             leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);             
+            legOK = layerNodes[i].getElementsByTagName("LegendURL");
+            leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);             
+
+            //Lectura de la etiqueta <BoundingBox>
+            n=0;
+            bboxOK= layerNodes[i].getElementsByTagName("BoundingBox");
+            alert(bboxOK.length);//######### NECESITO SABER CUÁNTOS ATRIBUTOS TIENE BOUNDINBOX???
+            //alert(bboxOK[0].getAttribute('CRS'));
+/*            
+            while (n < dim.length) {       		  
+		          if (dim[n].getAttribute('name')== 'elevation'){
+                ejeZ[ejeZ.length-1]= dim[n].childNodes[0].nodeValue.split(',');
+                defaultZ[defaultZ.length-1]= dim[n].getAttribute('default');
+		          }
+		          n++;      
+		        }            
+*/
           }//end_if
         }//end_for
         //alert('Capas habilitadas.');  //Confirmación carga capas
@@ -186,7 +203,6 @@
       //'temp' : L.timeDimension.layer.wms(T_2m, {cache:50}),      
       //'TEST_LAYER': L.timeDimension.layer.wms(testLayer, {cache:100, updateTimeDimension: true}),
   };
-
 
   //####### incluir sliders (elevación/opacidad) ############/
 
@@ -248,3 +264,51 @@
   // www.etsii.ull.es
   L.marker([28.4829825, -16.3220933]).addTo(map).
       bindPopup('Etsii-ULL');//.openPopup();       
+
+
+//============== PERFIL VERTICAL =========
+/*
+map.on('click', function(mouseEventToLayerPoint) {
+    //alert(mouseEventToLayerPoint.layerPoint);
+    //alert(this.getSize()); //resutl(1335x600)
+    window.open(test_WMS+"?REQUEST=GetVerticalProfile");//&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX=-43.2,14.53,1.8,50.53&SRS=CRS:84&FEATURE_COUNT=5&HEIGHT=600&WIDTH=750&X=" + Math.floor(750*mouseEventToLayerPoint.layerPoint.x/1335) + "&Y=" + mouseEventToLayerPoint.layerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png","_blank","width=400, height=400");
+});
+*/
+
+//var bboxFoamTmp= [-19.0,5.0,26.0,56.0];
+//var bboxFoamTmp = [-180.0,-81.5,180.0,89.5];
+//var bbox= bboxFoamTmp.toString(); //opcionalmente, cambia a 'string' cuando uses la variable.
+
+var popup = L.popup();
+var pointPV, pointTS;
+function onMapClick(e) {
+    popup
+        .setLatLng(e.latlng)
+	.setContent("<h3>Coordenadas: </h3><b>"+ e.latlng +
+			'</b><p><h4><a href="javascript:abreWindowPV();">Perfil vertical</a></p>'+
+			'<p><a href="javascript:abreWindowTS();">Time Series</a></p></h4>')
+        .openOn(map);
+}
+
+function abreWindowPV(event) {
+	window.open(pointPV,"_blank","width=750, height=600");
+}
+
+function abreWindowTS(event) {
+	window.open(pointTS,"_blank","width=750, height=600");
+}
+
+function pointToString(event) {
+	//pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+	//pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+  //pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS=thetao&QUERY_LAYERS=thetao&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+  //pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS=d01/r_cloud&QUERY_LAYERS=d01/r_cloud&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+}
+
+map.on('click', pointToString); //evento 'click' sobre el mapa
+map.on('click', onMapClick); //evento 'click' sobre el mapa
+
+
+//### Enlace de pruebas:
+//http://godiva.rdg.ac.uk/ncWMS2/wms?REQUEST=GetTimeseries&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX=-180,-140,180,148&SRS=CRS:84&HEIGHT=600&WIDTH=750&X=300&Y=238&VERSION=1.1.1&INFO_FORMAT=image/png
+//https://wms.gota-ull.net:8443/ncWMS/wms?REQUEST=GetTimeseries&LAYERS=d01/r_cloud&QUERY_LAYERS=d01/r_cloud&BBOX=-27.185617446899414,-5.814382553100586,21.927711486816406,34.31255340576172&SRS=CRS:84&HEIGHT=950&WIDTH=1856&X=795&Y=289&VERSION=1.1.1&INFO_FORMAT=image/png      

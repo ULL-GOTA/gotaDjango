@@ -55,7 +55,7 @@
 
     //##############################################
     
-    var test_WMS = "https://wms.gota-ull.net:8443/ncWMS/wms";
+    var test_WMS = "http://wms.local.gota-ull.net/";
     //var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
     //var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
 

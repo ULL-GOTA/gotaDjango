@@ -52,24 +52,7 @@
 	      version: '1.1.1', //version por defecto
 	      attribution: "Pinar Canario.",
 	  });*/	  	  
-	  
-      //CAPAS DE PRUEBA gotaWeb ################
-      /*  
-      var T_2m = L.tileLayer.wms("http://10.6.5.230:8080/ncWMS2/wms", {
-            layers: '20190321/T_2m',
-            crs: crs4326,
-            opacity: 0.6,
-            format: 'image/png', 
-      });
 
-      var albedo = L.tileLayer.wms("http://10.6.5.230:8080/ncWMS2/wms", {
-            layers: '20190321/albedo',
-            crs: crs4326,
-            opacity: 0.6,
-            format: 'image/png', 
-        });*/
-
-    //##############################################
     //##############################################
     
     //var test_WMS = "https://wms.gota-ull.net:8443/ncWMS/wms";
@@ -97,26 +80,29 @@
         var xmlDoc = xml.responseXML;
         var layerNodes = xmlDoc.getElementsByTagName("Layer");
 	      var OnlineResource= xmlDoc.getElementsByTagName("OnlineResource");
+
         var nam, tit, legOK, bboxOK, layer, tdLayer, n, dim;
         leg=[]; //vector con direcc. leyendas
 	      ejeZ=[]; //vector con alturas de cada capa
 	      defaultZ=[]; //Vector con alturas por defecto
-        bbox=[]; //vector con datos etiqueta <BoundingBox>
-	      //var dim={};
+        ntitCapas=[[]]; //Vector con nombre y titulo capas (matriz BIdimensional)
+        bbox=[[]]; //vector con datos etiqueta <BoundingBox> (matriz BIdimensional)       
         
         for (var i=0; i < layerNodes.length; i++) { 
-        //for (var i=0; i < 58; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CAPAS ====================	      
-	    
+        //for (var i=0; i < 53; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CAPAS ====================
           if (layerNodes[i].hasAttribute('queryable')){            
 		        ejeZ.push(null);
-		        defaultZ.push(null);
-            bbox.push(null);
+		        defaultZ.push(null);            
 
             //NOMBRES de las capas,
-            nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);                         
-                
+            nam = (layerNodes[i].getElementsByTagName("Name")[0].childNodes[0].nodeValue);
+            ntitCapas[ntitCapas.length-1][0]= nam;           
+               
             //Descripcion de la capa
             tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
+            ntitCapas[ntitCapas.length-1][1]= tit;
+
+            ntitCapas.push([]);
                 
             layer = L.tileLayer.wms(test_WMS, {
               layers: nam,
@@ -127,13 +113,13 @@
               attribution: 'gotaWeb 1.0 -ULL-'
             });
 
-            //Dimensión de altura/profundidad (elevationDimension)
-		        dim= layerNodes[i].getElementsByTagName("Dimension");
+            //Dimensión de altura/profundidad (elevationDimension)            
+		        dim= layerNodes[i].getElementsByTagName("Dimension");            
             n= 0;
             while (n < dim.length) {       		  
-		          if (dim[n].getAttribute('name')== 'elevation'){
-                ejeZ[ejeZ.length-1]= dim[n].childNodes[0].nodeValue.split(',');
-                defaultZ[defaultZ.length-1]= dim[n].getAttribute('default');
+		          if (dim[n].getAttribute('name')== 'elevation'){                
+              ejeZ[ejeZ.length-1]= dim[n].childNodes[0].nodeValue.split(',');
+              defaultZ[defaultZ.length-1]= dim[n].getAttribute('default');
 		          }
 		          n++;      
 		        }
@@ -142,27 +128,21 @@
             tdLayer = L.timeDimension.layer.wms(layer, {cache:100, setDefaultTime:true});                                 
             capas.addBaseLayer(tdLayer,tit);	//Adición de capa al control de capas                                        
 
-            //Leyenda asociada a la capa (NO SIEMPRE EXISTE)                
+            //Leyenda asociada a la capa (NO SIEMPRE EXISTE)
             legOK = layerNodes[i].getElementsByTagName("LegendURL");
-            leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);             
+            leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);
 
-            //Lectura de la etiqueta <BoundingBox>
-            n=0;
-            bboxOK= layerNodes[i].getElementsByTagName("BoundingBox");
-            alert(bboxOK.length);//######### NECESITO SABER CUÁNTOS ATRIBUTOS TIENE BOUNDINBOX???
-            //alert(bboxOK[0].getAttribute('CRS'));
-/*            
-            while (n < dim.length) {       		  
-		          if (dim[n].getAttribute('name')== 'elevation'){
-                ejeZ[ejeZ.length-1]= dim[n].childNodes[0].nodeValue.split(',');
-                defaultZ[defaultZ.length-1]= dim[n].getAttribute('default');
-		          }
-		          n++;      
-		        }            
-*/
+            //Lectura de la etiqueta <BoundingBox>            
+            bboxOK= layerNodes[i].getElementsByTagName("BoundingBox");      //######### Casi siempre se repiten los valores...
+            bbox[bbox.length-1].push(bboxOK[0].getAttribute('CRS'));
+            bbox[bbox.length-1].push(bboxOK[0].getAttribute('minx'));
+            bbox[bbox.length-1].push(bboxOK[0].getAttribute('miny'));
+            bbox[bbox.length-1].push(bboxOK[0].getAttribute('maxx'));
+            bbox[bbox.length-1].push(bboxOK[0].getAttribute('maxy'));
+            bbox.push([]);
+
           }//end_if
         }//end_for
-        //alert('Capas habilitadas.');  //Confirmación carga capas
     };//end_function    
 
   //Se añaden las capas (en la 2º forma)
@@ -180,9 +160,9 @@
       timeDimensionControlOptions:{
           loopButton: true,
           playerOptions:{
-              //transitionTime: 250, //(250= 4fps)
-              //buffer: 1,
-              //minBufferReady: 1,
+          //transitionTime: 250, //(250= 4fps)
+          //buffer: 1,
+          //minBufferReady: 1,
           }
       }
   });
@@ -224,15 +204,15 @@
     };
 
     //## EVENTO: cambio de capa-base #########
-
-	  var k;
+    var k, capaActiva;
     map.on('baselayerchange', function(changeLayer){
-      k=0; 
+      k= 0;
       while (k < capas._layers.length){
         //alert(capas._layers[k].name);
-        if (changeLayer.name == capas._layers[k].name){                
+        if (changeLayer.name == capas._layers[k].name){
           leyenda = leg[k];
-          testLegend.addTo(map);			//se ejecuta testLegend.onAdd()
+          testLegend.addTo(map);			//se ejecuta testLegend.onAdd()          
+          capaActiva= ntitCapas[k][0];
 
           //OPACIDAD
           sliderOpacity.value= 50;		//condición inicial del slider
@@ -241,7 +221,7 @@
             changeLayer.layer.setOpacity(this.value/100);
           }
           
-          //ALTURA          
+          //ALTURA          //######### REVISAR ESTADO del slider cuando NO existen alturas.
           sliderElev.max= ejeZ[k].length-1;
           sliderElev.value= ejeZ[k].indexOf(defaultZ[k]); //Número de POSICIÓN del valor "default" de ELEVATION.          
           output.innerHTML = defaultZ[k];	//condición inicial                    
@@ -252,7 +232,7 @@
           break;
         }//end_inf
         k++;
-      }//endWHILE 
+      }//endWHILE      
     });
 
 		//#########  #########
@@ -266,28 +246,17 @@
       bindPopup('Etsii-ULL');//.openPopup();       
 
 
-//============== PERFIL VERTICAL =========
-/*
-map.on('click', function(mouseEventToLayerPoint) {
-    //alert(mouseEventToLayerPoint.layerPoint);
-    //alert(this.getSize()); //resutl(1335x600)
-    window.open(test_WMS+"?REQUEST=GetVerticalProfile");//&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX=-43.2,14.53,1.8,50.53&SRS=CRS:84&FEATURE_COUNT=5&HEIGHT=600&WIDTH=750&X=" + Math.floor(750*mouseEventToLayerPoint.layerPoint.x/1335) + "&Y=" + mouseEventToLayerPoint.layerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png","_blank","width=400, height=400");
-});
-*/
-
-//var bboxFoamTmp= [-19.0,5.0,26.0,56.0];
-//var bboxFoamTmp = [-180.0,-81.5,180.0,89.5];
-//var bbox= bboxFoamTmp.toString(); //opcionalmente, cambia a 'string' cuando uses la variable.
+//============== PERFILES VERTICALES y SERIES TEMPORALES =========
 
 var popup = L.popup();
 var pointPV, pointTS;
 function onMapClick(e) {
-    popup
-        .setLatLng(e.latlng)
-	.setContent("<h3>Coordenadas: </h3><b>"+ e.latlng +
+  popup
+    .setLatLng(e.latlng)
+	  .setContent("<h3>Coordenadas: </h3><b>"+ e.latlng +
 			'</b><p><h4><a href="javascript:abreWindowPV();">Perfil vertical</a></p>'+
 			'<p><a href="javascript:abreWindowTS();">Time Series</a></p></h4>')
-        .openOn(map);
+    .openOn(map);
 }
 
 function abreWindowPV(event) {
@@ -299,16 +268,11 @@ function abreWindowTS(event) {
 }
 
 function pointToString(event) {
-	//pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
-	//pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
-  //pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS=thetao&QUERY_LAYERS=thetao&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
-  //pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS=d01/r_cloud&QUERY_LAYERS=d01/r_cloud&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+  pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+  pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
 }
 
 map.on('click', pointToString); //evento 'click' sobre el mapa
 map.on('click', onMapClick); //evento 'click' sobre el mapa
 
-
-//### Enlace de pruebas:
-//http://godiva.rdg.ac.uk/ncWMS2/wms?REQUEST=GetTimeseries&LAYERS=foam/TMP&QUERY_LAYERS=foam/TMP&BBOX=-180,-140,180,148&SRS=CRS:84&HEIGHT=600&WIDTH=750&X=300&Y=238&VERSION=1.1.1&INFO_FORMAT=image/png
-//https://wms.gota-ull.net:8443/ncWMS/wms?REQUEST=GetTimeseries&LAYERS=d01/r_cloud&QUERY_LAYERS=d01/r_cloud&BBOX=-27.185617446899414,-5.814382553100586,21.927711486816406,34.31255340576172&SRS=CRS:84&HEIGHT=950&WIDTH=1856&X=795&Y=289&VERSION=1.1.1&INFO_FORMAT=image/png      
+//###################

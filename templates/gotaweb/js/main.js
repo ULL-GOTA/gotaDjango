@@ -53,11 +53,12 @@
 	      attribution: "Pinar Canario.",
 	  });*/	  	  
 
-    //##############################################
+    //######################### SERVICIOS WMS DE PRUEBAS #####################
     
-    //var test_WMS = "https://wms.gota-ull.net:8443/ncWMS/wms";
+    //var test_WMS = "https://eosdap.hdfgroup.org:8888/ncWMS2/wms";
     var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
     //var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
+    //var test_WMS = "https://wms.gota-ull.net/ncWMS";
 
 
     //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR WMS-SERVER (GetCapabilities)
@@ -71,9 +72,8 @@
         }        
     };
 
-    //###### consultar 'GetCapabilities' WMS Server #########
+    //###### consultar 'GetCapabilities' WMS Server #########  
     xhttp.open("GET", test_WMS + '?request=GetCapabilities&service=WMS&VERSION=1.3.0', true);
-    
     xhttp.send(); //se ejecuta (.onreadystatechange)
 
     function myFunction(xml) {
@@ -184,13 +184,6 @@
       //'TEST_LAYER': L.timeDimension.layer.wms(testLayer, {cache:100, updateTimeDimension: true}),
   };
 
-  //####### incluir sliders (elevación/opacidad) ############/
-
-	var sliderElev = document.getElementById("myRange");
-	var output = document.getElementById("demo1");
-	var sliderOpacity= document.getElementById("opacidad");
-
-
   //####### incluir leyenda ############/
     var leyenda;
     testLegend = L.control({
@@ -203,32 +196,45 @@
         return div;
     };
 
-    //## EVENTO: cambio de capa-base #########
-    var k, capaActiva;
+    //=========================
+
+    //## EVENTO: cambio de capa-base #########    
+    var $slider = $('#slider');
+    var $opacidad= $('#opacidad');
+    $('#rt1').html('0'); //valor inicial de la etiqueta
     map.on('baselayerchange', function(changeLayer){
       k= 0;
       while (k < capas._layers.length){
-        //alert(capas._layers[k].name);
         if (changeLayer.name == capas._layers[k].name){
           leyenda = leg[k];
           testLegend.addTo(map);			//se ejecuta testLegend.onAdd()          
           capaActiva= ntitCapas[k][0];
 
           //OPACIDAD
-          sliderOpacity.value= 50;		//condición inicial del slider
-          //changeLayer.layer.setOpacity(0.5); //condición inicial de la opacidad de la capa
-          sliderOpacity.oninput= function(){	//evento -cambia sliderOpacity-
-            changeLayer.layer.setOpacity(this.value/100);
-          }
+          $opacidad.val(25); //condición inicial del slider
+          changeLayer.layer.setOpacity(0.25);
+          $('#sf2').css('width', 0.25*240);
+          $(document).on('input', '#opacidad', function() {
+            changeLayer.layer.setOpacity($opacidad.val()/100);      
+            $('#sf2').css('width', ($opacidad.val()/100)*240);            
+          });          
           
           //ALTURA          //######### REVISAR ESTADO del slider cuando NO existen alturas.
-          sliderElev.max= ejeZ[k].length-1;
-          sliderElev.value= ejeZ[k].indexOf(defaultZ[k]); //Número de POSICIÓN del valor "default" de ELEVATION.          
-          output.innerHTML = defaultZ[k];	//condición inicial                    
-          sliderElev.oninput = function() {	//evento -cambia sliderElevation-		        
-            output.innerHTML = ejeZ[k][sliderElev.value];            
-            changeLayer.layer.setParams({elevation:ejeZ[k][sliderElev.value]});
-		      };
+          $slider.attr({'max': ejeZ[k].length-1});  //tamanyo vector
+
+          $slider.val(ejeZ[k].indexOf(defaultZ[k])); //Número de POSICIÓN del valor "default" de ELEVATION.
+          var $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
+          $('#sf1').css('width', $slider_fill);
+          $('#rt1').html(defaultZ[k].slice(0,6)); //valor por defecto de la capa en la etiqueta
+
+          $(document).on('input', '#slider', function() {
+            $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
+            //(*) ancho slider_fill
+            changeLayer.layer.setParams({elevation:ejeZ[k][$slider.val()]});                        
+            $('#sf1').css('width', $slider_fill);
+            $('#rt1').text(ejeZ[k][$slider.val()].slice(0,6));            
+          });
+
           break;
         }//end_inf
         k++;

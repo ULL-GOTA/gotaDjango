@@ -26,49 +26,148 @@
     <link rel="stylesheet" href="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.control.min.css" />
     <script type="text/javascript" src="https://cdn.rawgit.com/nezasa/iso8601-js-period/master/iso8601.min.js"></script>
     <script type="text/javascript" src="https://cdn.rawgit.com/socib/Leaflet.TimeDimension/master/dist/leaflet.timedimension.min.js"></script>
+
+    <!-- JQUERY-->
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>    
     
   </head>
   
-  <body>          
-    
+  <body>
     <style>
-	/*Establecemos un tamaño predefinido de alto del mapa*/
+      
+    /*Establecemos un tamaño predefinido de alto del mapa*/
       #map { 
         width: 100%;        
         height: 900px;
         box-shadow: 5px 5px 5px #888;
       }
-	 .demo1 { /*Estilo del div de sliders (Elevation y Opacidad)*/
-	   position: relative;
-	   float: right;
-	   z-index: 800;
-	   right: 5px;
-	   bottom: 150px;
-	   background-color: rgba(255, 255, 255, 0.5);
-	   font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
-	   border: 2px solid #333333;
-	   border-radius: 5px;
-	 }
+
+      .demo1 { /*Estilo del div de sliders (Elevation y Opacidad)*/
+        position: relative;
+        float: right;
+        z-index: 800;
+        right: 15px;
+        bottom: 125px;
+        background-color: rgba(255, 255, 255, 0.5);
+        font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+        border-radius: 5px;
+      }
+
+  /*        #################################     */
+
+      .container {
+        float: right;
+        position: relative;
+        width: 250px;        
+      }
+
+      .slider {
+        width: 250px;
+        height: 25px;
+        background: #777;
+        outline: none;
+        opacity: 0;
+        z-index: 99;
+        transition: opacity 0.2s;
+        cursor: pointer;
+      }
+
+      .range-slider {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: calc(100% - 10px);
+        height: 10px;
+        z-index: -1;
+      }
+
+      .slider-path {
+        width: 100%;
+        height: 80%;
+        background: #fff;
+        border: 1px solid #888;
+        opacity: 0.7;
+        border-radius: 5px;
+        transition: opacity 0.2s;
+      }
+
+      .slider-fill {
+        position: absolute;
+        top: 50%;
+        background: #5AA4D4; /*#a1a1a1*/
+        height: calc(100%);
+        border-radius: 3px;
+        transform: translateY(-50%);
+        transition: all cubic-bezier(0, 0, 0, 1) 0.3s;
+      }
+      .slider-fill:before {
+        content: "";
+        width: 10px;
+        height: 25px;
+        position: absolute;
+        right: -2px;
+        top: 50%;
+        background: #777;
+        transform: translateY(-50%);
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      .range-text {
+        display: block;
+        width: 50px;
+        text-align: center;
+        position: absolute;
+        top: -25px;
+        right: -27px;
+        background: #777;
+        color: #fff;
+        padding: 5px;
+        border-radius: 5px;
+        z-index: -1;
+        transform: translateY(-100%);
+        transition: all ease 0.25s;
+      }
+      .range-text:before {
+        content: "";
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-left: 10px solid transparent;
+        border-right: 10px solid transparent;
+        border-top: 10px solid #777;
+        transform: translateX(-50%);
+      }
 
     </style>    
 
     <!--Contenedor del mapa-->
-    <div id = "map"></div>   
+    <div id = "map"></div>
 
-
-    <!--div de sliders (Elevation y Opacidad)-->
     <div class= "demo1">
-      <em style="background-color:#333333; color:white">Altura: </span><span id="demo1"></em>
-      <input type="range" id="myRange"><br><br>
-      <em style="background-color:green; color:white">Opacidad </em>
-      <input type="range" id="opacidad">
+      <em style="position:absolute; background-color:#4c8632; color:white; margin-left:10px; padding:5px">Altura:</em>
+      <div class=container>        
+        <input type="range" class='slider' id="slider">
+        <div class="range-slider">
+          <div class="slider-path"></div>
+          <div class="slider-fill" id="sf1"><span class="range-text" id="rt1"></span></div>
+        </div>      
+      </div><br><br><br>
+      <em style="background-color:#7ebc42; color:white; padding:5px; margin-right:10px">Opacidad:</em>
+      <div class=container>        
+        <input type="range" class='slider' id="opacidad">
+        <div class="range-slider">
+          <div class="slider-path"></div>
+          <div class="slider-fill" id="sf2"></div>
+        </div>      
+      </div><br>      
     </div>
-
-    <!-- llamada de script JS en Django-->
+   
     <!--script src="{% static 'gotaweb/js/main.js' %}"></script-->
-
-    <!-- llamada de script JS SIN Django (en local)-->
     <script src="js/main.js"></script>
-    
+	    
   </body>
 </html>

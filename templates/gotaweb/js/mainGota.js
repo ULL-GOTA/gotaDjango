@@ -58,7 +58,7 @@
     //var test_WMS = "https://eosdap.hdfgroup.org:8888/ncWMS2/wms";
     //var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
     //var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
-    var test_WMS = "https://wms.gota-ull.net/ncWMS";
+    var test_WMS = "https://wms.gota-ull.net/ncWMS/wms";
 
 
     //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR WMS-SERVER (GetCapabilities)

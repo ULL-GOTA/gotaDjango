@@ -219,22 +219,25 @@
             $('#sf2').css('width', ($opacidad.val()/100)*240);            
           });          
           
-          //ALTURA          //######### REVISAR ESTADO del slider cuando NO existen alturas.
-          $slider.attr({'max': ejeZ[k].length-1});  //tamanyo vector
-
-          $slider.val(ejeZ[k].indexOf(defaultZ[k])); //Número de POSICIÓN del valor "default" de ELEVATION.
-          var $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
-          $('#sf1').css('width', $slider_fill);
-          $('#rt1').html(defaultZ[k].slice(0,6)); //valor por defecto de la capa en la etiqueta
-
-          $(document).on('input', '#slider', function() {
-            $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
-            //(*) ancho slider_fill
-            changeLayer.layer.setParams({elevation:ejeZ[k][$slider.val()]});                        
+          //ALTURA
+          if (defaultZ[k] != null){
+            $slider.attr({'max': ejeZ[k].length-1});  //tamanyo vector
+            $slider.val(ejeZ[k].indexOf(defaultZ[k])); //Número de POSICIÓN del valor "default" de ELEVATION.
+            var $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
             $('#sf1').css('width', $slider_fill);
-            $('#rt1').text(ejeZ[k][$slider.val()].slice(0,6));            
-          });
+            $('#rt1').text(Number(ejeZ[k][$slider.val()]).toPrecision(4)); //valor por defecto de la capa en la etiqueta
 
+            $(document).on('input', '#slider', function() {
+              $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
+              //(*) ancho slider_fill
+              changeLayer.layer.setParams({elevation:ejeZ[k][$slider.val()]});                        
+              $('#sf1').css('width', $slider_fill);            
+              $('#rt1').text(Number(ejeZ[k][$slider.val()]).toPrecision(4));
+            });
+          } else{
+            $slider.val(0);
+            $('#rt1').html('No-Alt');
+          }
           break;
         }//end_inf
         k++;
@@ -273,7 +276,7 @@ function abreWindowTS(event) {
 	window.open(pointTS,"_blank","width=750, height=600");
 }
 
-function pointToString(event) {
+function pointToString(event) {  
   pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
   pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
 }
@@ -282,3 +285,8 @@ map.on('click', pointToString); //evento 'click' sobre el mapa
 map.on('click', onMapClick); //evento 'click' sobre el mapa
 
 //###################
+
+//TIME_SERIES: relative_humidity (gota-ull)   ##### CORREGIR ERROR AL LEER BBOX ########
+
+//https://wms.gota-ull.net/ncWMS/wms?REQUEST=GetTimeseries&LAYERS=d04/rh_2m&QUERY_LAYERS=d04/rh_2m&BBOX=-17.0184,27.9074,-16.0086,28.7152&SRS=CRS:84&FEATURE_COUNT=5&HEIGHT=600&WIDTH=750&X=434&Y=210&STYLES=default/default&VERSION=1.1.1&TIME=2022-02-10T18:00:00.000Z/2022-02-12T00:00:00.000Z&INFO_FORMAT=image/png
+//https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m?REQUEST=GetTimeseries&LAYERS=uo&QUERY_LAYERS=uo&BBOX=CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,&SRS=CRS:84&HEIGHT=900&WIDTH=1839&X=699&Y=174&VERSION=1.1.1&INFO_FORMAT=image/png

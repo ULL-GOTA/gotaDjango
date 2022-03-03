@@ -133,8 +133,8 @@
             leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);
 
             //Lectura de la etiqueta <BoundingBox>            
-            bboxOK= layerNodes[i].getElementsByTagName("BoundingBox");      //######### Casi siempre se repiten los valores...
-            bbox[bbox.length-1].push(bboxOK[0].getAttribute('CRS'));
+            bboxOK= layerNodes[i].getElementsByTagName("BoundingBox");
+            //bbox[bbox.length-1].push(bboxOK[0].getAttribute('CRS'));  //######### Casi siempre se repiten los valores...
             bbox[bbox.length-1].push(bboxOK[0].getAttribute('minx'));
             bbox[bbox.length-1].push(bboxOK[0].getAttribute('miny'));
             bbox[bbox.length-1].push(bboxOK[0].getAttribute('maxx'));
@@ -201,14 +201,13 @@
     //## EVENTO: cambio de capa-base #########    
     var $slider = $('#slider');
     var $opacidad= $('#opacidad');
+    var  k= 0; //indice de ntitCapas
     $('#rt1').html('0'); //valor inicial de la etiqueta
-    map.on('baselayerchange', function(changeLayer){
-      k= 0;
+    map.on('baselayerchange', function(changeLayer){    
       while (k < capas._layers.length){
         if (changeLayer.name == capas._layers[k].name){
           leyenda = leg[k];
-          testLegend.addTo(map);			//se ejecuta testLegend.onAdd()          
-          capaActiva= ntitCapas[k][0];
+          testLegend.addTo(map);			//se ejecuta testLegend.onAdd()        #### COMPROBAR LOS CAMBIOS DE LEYENDA (GOTA-ULL)
 
           //OPACIDAD
           $opacidad.val(25); //condición inicial del slider
@@ -219,22 +218,25 @@
             $('#sf2').css('width', ($opacidad.val()/100)*240);            
           });          
           
-          //ALTURA          //######### REVISAR ESTADO del slider cuando NO existen alturas.
-          $slider.attr({'max': ejeZ[k].length-1});  //tamanyo vector
-
-          $slider.val(ejeZ[k].indexOf(defaultZ[k])); //Número de POSICIÓN del valor "default" de ELEVATION.
-          var $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
-          $('#sf1').css('width', $slider_fill);
-          $('#rt1').html(defaultZ[k].slice(0,6)); //valor por defecto de la capa en la etiqueta
-
-          $(document).on('input', '#slider', function() {
-            $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
-            //(*) ancho slider_fill
-            changeLayer.layer.setParams({elevation:ejeZ[k][$slider.val()]});                        
+          //ALTURA
+          if (defaultZ[k] != null){
+            $slider.attr({'max': ejeZ[k].length-1});  //tamanyo vector
+            $slider.val(ejeZ[k].indexOf(defaultZ[k])); //Número de POSICIÓN del valor "default" de ELEVATION.
+            var $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
             $('#sf1').css('width', $slider_fill);
-            $('#rt1').text(ejeZ[k][$slider.val()].slice(0,6));            
-          });
+            $('#rt1').text(Number(ejeZ[k][$slider.val()]).toPrecision(4)); //valor por defecto de la capa en la etiqueta
 
+            $(document).on('input', '#slider', function() {
+              $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
+              //(*) ancho slider_fill
+              changeLayer.layer.setParams({elevation:ejeZ[k][$slider.val()]});                        
+              $('#sf1').css('width', $slider_fill);            
+              $('#rt1').text(Number(ejeZ[k][$slider.val()]).toPrecision(4));
+            });
+          } else{
+            $slider.val(0);
+            $('#rt1').html('No-Alt');
+          }
           break;
         }//end_inf
         k++;
@@ -252,7 +254,7 @@
       bindPopup('Etsii-ULL');//.openPopup();       
 
 
-//============== PERFILES VERTICALES y SERIES TEMPORALES =========
+//============== PERFILES VERTICALES y SERIES TEMPORALES =========        ########### ALGUNOS PERFILES Y SERIES NO LEEN LA CAPA CORRECTAMENTE ('undefined') (Gota-ULL)
 
 var popup = L.popup();
 var pointPV, pointTS;
@@ -274,11 +276,14 @@ function abreWindowTS(event) {
 }
 
 function pointToString(event) {
-  pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
-  pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+  pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS="+(ntitCapas[k][0])+"&QUERY_LAYERS="+(ntitCapas[k][0])+"&BBOX="+(bbox[k])+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+  pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS="+(ntitCapas[k][0])+"&QUERY_LAYERS="+(ntitCapas[k][0])+"&BBOX="+(bbox[k])+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
 }
 
 map.on('click', pointToString); //evento 'click' sobre el mapa
 map.on('click', onMapClick); //evento 'click' sobre el mapa
 
 //###################
+//alert(ntitCapas[k]);
+//https://wms.gota-ull.net/ncWMS/wms?REQUEST=GetVerticalProfile&LAYERS=undefined&QUERY_LAYERS=undefined&BBOX=&SRS=CRS:84&HEIGHT=900&WIDTH=999&X=279&Y=295&VERSION=1.1.1&INFO_FORMAT=image/png
+//https://wms.gota-ull.net/ncWMS/wms?REQUEST=GetTimeseries&LAYERS=d01/rh_2m&QUERY_LAYERS=d01/rh_2m&BBOX=-27.185617446899414,21.927711486816406,-5.814382553100586,34.31255340576172&SRS=CRS:84&HEIGHT=900&WIDTH=999&X=393&Y=233&VERSION=1.1.1&INFO_FORMAT=image/png

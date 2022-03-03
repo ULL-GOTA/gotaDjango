@@ -58,7 +58,7 @@
     //var test_WMS = "https://eosdap.hdfgroup.org:8888/ncWMS2/wms";
     var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
     //var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
-    //var test_WMS = "https://wms.gota-ull.net/ncWMS";
+    //var test_WMS = "https://wms.gota-ull.net/ncWMS/wms";
 
 
     //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR WMS-SERVER (GetCapabilities)
@@ -133,8 +133,8 @@
             leg.push(legOK[0] ? legOK[0].getElementsByTagName("OnlineResource")[0].getAttribute('xlink:href') : null);
 
             //Lectura de la etiqueta <BoundingBox>            
-            bboxOK= layerNodes[i].getElementsByTagName("BoundingBox");      //######### Casi siempre se repiten los valores...
-            bbox[bbox.length-1].push(bboxOK[0].getAttribute('CRS'));
+            bboxOK= layerNodes[i].getElementsByTagName("BoundingBox");
+            //bbox[bbox.length-1].push(bboxOK[0].getAttribute('CRS'));  //######### Casi siempre se repiten los valores...
             bbox[bbox.length-1].push(bboxOK[0].getAttribute('minx'));
             bbox[bbox.length-1].push(bboxOK[0].getAttribute('miny'));
             bbox[bbox.length-1].push(bboxOK[0].getAttribute('maxx'));
@@ -201,14 +201,13 @@
     //## EVENTO: cambio de capa-base #########    
     var $slider = $('#slider');
     var $opacidad= $('#opacidad');
+    var  k= 0; //indice de ntitCapas
     $('#rt1').html('0'); //valor inicial de la etiqueta
-    map.on('baselayerchange', function(changeLayer){
-      k= 0;
+    map.on('baselayerchange', function(changeLayer){    
       while (k < capas._layers.length){
         if (changeLayer.name == capas._layers[k].name){
           leyenda = leg[k];
-          testLegend.addTo(map);			//se ejecuta testLegend.onAdd()          
-          capaActiva= ntitCapas[k][0];
+          testLegend.addTo(map);			//se ejecuta testLegend.onAdd()
 
           //OPACIDAD
           $opacidad.val(25); //condición inicial del slider
@@ -276,17 +275,12 @@ function abreWindowTS(event) {
 	window.open(pointTS,"_blank","width=750, height=600");
 }
 
-function pointToString(event) {  
-  pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
-  pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS="+capaActiva+"&QUERY_LAYERS="+capaActiva+"&BBOX="+bbox+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+function pointToString(event) {
+  pointPV= (test_WMS+"?REQUEST=GetVerticalProfile&LAYERS="+(ntitCapas[k][0])+"&QUERY_LAYERS="+(ntitCapas[k][0])+"&BBOX="+(bbox[k])+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
+  pointTS= (test_WMS+"?REQUEST=GetTimeseries&LAYERS="+(ntitCapas[k][0])+"&QUERY_LAYERS="+(ntitCapas[k][0])+"&BBOX="+(bbox[k])+"&SRS=CRS:84&HEIGHT="+map.getSize().y+"&WIDTH="+map.getSize().x+"&X=" + event.containerPoint.x + "&Y=" + event.containerPoint.y + "&VERSION=1.1.1&INFO_FORMAT=image/png");
 }
 
 map.on('click', pointToString); //evento 'click' sobre el mapa
 map.on('click', onMapClick); //evento 'click' sobre el mapa
 
 //###################
-
-//TIME_SERIES: relative_humidity (gota-ull)   ##### CORREGIR ERROR AL LEER BBOX ########
-
-//https://wms.gota-ull.net/ncWMS/wms?REQUEST=GetTimeseries&LAYERS=d04/rh_2m&QUERY_LAYERS=d04/rh_2m&BBOX=-17.0184,27.9074,-16.0086,28.7152&SRS=CRS:84&FEATURE_COUNT=5&HEIGHT=600&WIDTH=750&X=434&Y=210&STYLES=default/default&VERSION=1.1.1&TIME=2022-02-10T18:00:00.000Z/2022-02-12T00:00:00.000Z&INFO_FORMAT=image/png
-//https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m?REQUEST=GetTimeseries&LAYERS=uo&QUERY_LAYERS=uo&BBOX=CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,CRS:84,-19.0,26.0,5.0,56.0,&SRS=CRS:84&HEIGHT=900&WIDTH=1839&X=699&Y=174&VERSION=1.1.1&INFO_FORMAT=image/png

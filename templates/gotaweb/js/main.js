@@ -201,9 +201,10 @@
     //## EVENTO: cambio de capa-base #########    
     var $slider = $('#slider');
     var $opacidad= $('#opacidad');
-    var  k= 0; //indice de ntitCapas
+    var  k; //indice de ntitCapas
     $('#rt1').html('0'); //valor inicial de la etiqueta
-    map.on('baselayerchange', function(changeLayer){    
+    map.on('baselayerchange', function(changeLayer){
+      k=0;
       while (k < capas._layers.length){
         if (changeLayer.name == capas._layers[k].name){
           leyenda = leg[k];
@@ -233,8 +234,9 @@
               $('#sf1').css('width', $slider_fill);            
               $('#rt1').text(Number(ejeZ[k][$slider.val()]).toPrecision(4));
             });
-          } else{
-            $slider.val(0);
+          } else{            
+            $slider.val(0);            
+            $('#sf1').css('width', 0);
             $('#rt1').html('No-Alt');
           }
           break;

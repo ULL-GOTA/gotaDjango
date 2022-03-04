@@ -81,15 +81,15 @@
         var layerNodes = xmlDoc.getElementsByTagName("Layer");
 	      var OnlineResource= xmlDoc.getElementsByTagName("OnlineResource");
 
-        var nam, tit, legOK, bboxOK, layer, tdLayer, n, dim;
+        var nam, tit, abstr, legOK, bboxOK, layer, tdLayer, n, dim;
         leg=[]; //vector con direcc. leyendas
 	      ejeZ=[]; //vector con alturas de cada capa
 	      defaultZ=[]; //Vector con alturas por defecto
-        ntitCapas=[[]]; //Vector con nombre y titulo capas (matriz BIdimensional)
+        ntitCapas=[[]]; //Vector con nombre, titulo y abstract de capas (matriz TRIdimensional)
         bbox=[[]]; //vector con datos etiqueta <BoundingBox> (matriz BIdimensional)       
         
         for (var i=0; i < layerNodes.length; i++) { 
-        //for (var i=0; i < 53; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CAPAS ====================
+        //for (var i=0; i < 3; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CAPAS ====================
           if (layerNodes[i].hasAttribute('queryable')){            
 		        ejeZ.push(null);
 		        defaultZ.push(null);            
@@ -102,7 +102,11 @@
             tit = (layerNodes[i].getElementsByTagName("Title")[0].childNodes[0].nodeValue);
             ntitCapas[ntitCapas.length-1][1]= tit;
 
-            ntitCapas.push([]);
+            //Abstract de la capa
+            abstr = (layerNodes[i].getElementsByTagName("Abstract")[0].childNodes[0].nodeValue);
+            ntitCapas[ntitCapas.length-1][2]= abstr;
+
+            ntitCapas.push([]);            
                 
             layer = L.tileLayer.wms(test_WMS, {
               layers: nam,
@@ -201,14 +205,17 @@
     //## EVENTO: cambio de capa-base #########    
     var $slider = $('#slider');
     var $opacidad= $('#opacidad');
-    var  k; //indice de ntitCapas
+    var coll = document.getElementsByClassName("collapsible");
+    var  k; //indice de ntitCapas    
     $('#rt1').html('0'); //valor inicial de la etiqueta
+
     map.on('baselayerchange', function(changeLayer){
       k=0;
       while (k < capas._layers.length){
         if (changeLayer.name == capas._layers[k].name){
           leyenda = leg[k];
           testLegend.addTo(map);			//se ejecuta testLegend.onAdd()
+          coll[0].childNodes[0].nodeValue= ntitCapas[k][1];
 
           //OPACIDAD
           $opacidad.val(25); //condición inicial del slider
@@ -286,3 +293,16 @@ map.on('click', pointToString); //evento 'click' sobre el mapa
 map.on('click', onMapClick); //evento 'click' sobre el mapa
 
 //###################
+
+var content = coll[0].nextElementSibling;
+
+coll[0].addEventListener('mouseover', function() {    
+  this.classList.toggle("active");    
+  content.style.maxHeight = content.scrollHeight + "px"; //abre 'persiana'
+  content.getElementsByTagName('p')[0].childNodes[0].nodeValue= ntitCapas[k][2]    
+});
+
+coll[0].addEventListener('mouseleave', function() {
+  this.classList.toggle("active");
+  content.style.maxHeight = null; //cierra 'persiana'
+});

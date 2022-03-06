@@ -2,13 +2,14 @@
   	  
 	  //######## Sistemas de referencia ##############
 	  //http://spatialreference.org/ref/epsg/32628/proj4/
+
 	  //crs:84 --> EPSG:4326 ##########
 	  var crs4326 = new L.Proj.CRS('EPSG:4326',
 	  '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs');      
 	  
-      //Creación sistema referencia EPSG:32628 (WGS-84/UTM-28N), para mapas de Grafcan.########
-//      var crs32628 = new L.Proj.CRS('EPSG:32628',
-//	  '+proj=utm +zone=28 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');	                  
+    //Creación sistema referencia EPSG:32628 (WGS-84/UTM-28N), para mapas de Grafcan.########
+    var crs32628 = new L.Proj.CRS('EPSG:32628',
+	  '+proj=utm +zone=28 +ellps=WGS84 +datum=WGS84 +units=m +no_defs');	                  
 	  
       
       //########## Adición de capa(s) base: ##############
@@ -20,7 +21,7 @@
       // 2º) A través de Mapbox (previa solicitud token acceso). El id permite varios estilos de mapa.############
       
 	  var outdoors = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoicHJ1ZWJhbWFwYm94MjIzMiIsImEiOiJja3dtYXR0ZnkyYTFtMm9xdnBoNWtlYmZyIn0.G7xjcWG47ApIc-7HMp6QpA', { attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a> ', maxZoom: 18, id: 'mapbox.satellite'});
-	//, accessToken: 'your.mapbox.access.token' .addTo(map); 
+	  //, accessToken: 'your.mapbox.access.token' .addTo(map); 
       
       
       //########## Adición de OVERLAYS (manualmente): ##############
@@ -34,25 +35,25 @@
 	  version: '1.3.0',                
 	  crs: crs32628,
 	  }),
-	
-        municipios = L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/CARTO_EST?',{
-	  layers: 'MUN',
-	  //styles: 'default',
-	  //continuousWorld: true,
-	  format: 'image/png',
-	  transparent: true,
-	  version: '1.3.0',                
-	  crs: crs32628,
-	  }),
-		          
+    
 	  pinar = L.tileLayer.wms('http://wms.magrama.es/sig/Biodiversidad/MFE27/wms.aspx', {
 	      layers: 'Pinar de pino canario (Pinus canariensis)',//*nombre capa (layer queryable al consultar la 'get capabilities' de la web
 	      format: 'image/png',
 	      transparent: true,
 	      version: '1.1.1', //version por defecto
 	      attribution: "Pinar Canario.",
-	  });*/	  	  
-
+	  });
+    */    
+    municipios = L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/CARTO_EST?',{
+      layers: 'MUN',
+      //styles: 'default',
+      //continuousWorld: true,
+      format: 'image/png',
+      transparent: true,
+      version: '1.3.0',                
+      crs: crs32628,
+	  });
+		          
     //######################### SERVICIOS WMS DE PRUEBAS #####################
     
     //var test_WMS = "https://eosdap.hdfgroup.org:8888/ncWMS2/wms";
@@ -182,12 +183,12 @@
   
   //Capas de informacion  ## OVERLAYS ##
   var overlays = {
-      //"Municipios canarios": municipios,          
-      //"PinoCanario": pinar,
+      "Municipios canarios": municipios,          
+      //"PinoCanario": pinar,      
       //'temp' : L.timeDimension.layer.wms(T_2m, {cache:50}),      
       //'TEST_LAYER': L.timeDimension.layer.wms(testLayer, {cache:100, updateTimeDimension: true}),
   };
-
+  
   //####### incluir leyenda ############/
     var leyenda;
     testLegend = L.control({
@@ -211,12 +212,12 @@
 
     map.on('baselayerchange', function(changeLayer){
       k=0;
-      while (k < capas._layers.length){
-        if (changeLayer.name == capas._layers[k].name){
+      while (k < capas._layers.length){        
+          if (changeLayer.name == ntitCapas[k][1]){
           leyenda = leg[k];
           testLegend.addTo(map);			//se ejecuta testLegend.onAdd()
           coll[0].childNodes[0].nodeValue= ntitCapas[k][1];
-
+          
           //OPACIDAD
           $opacidad.val(25); //condición inicial del slider
           changeLayer.layer.setOpacity(0.25);
@@ -255,8 +256,23 @@
 		//#########  #########
     
   //añade un control de capas        
-    var capas = L.control.layers(baseLayers, overlays).addTo(map);    
+    var capas = L.control.layers(baseLayers, overlays).addTo(map);
 
+  //adicción de capa VECTORIAL    
+    $.getJSON("wind-global.json", function(data) {      
+      windGlobal = L.velocityLayer({
+        displayValues: true,
+        displayOptions: {
+          velocityType: "Global Wind",
+          position: "topright",
+          emptyString: "No wind data"
+        },
+        data: data,
+        maxVelocity: 15
+      });
+      capas.addOverlay(windGlobal, "Wind - Global");
+    });    
+    
   //añade un marcador: 
   // www.etsii.ull.es
   L.marker([28.4829825, -16.3220933]).addTo(map).

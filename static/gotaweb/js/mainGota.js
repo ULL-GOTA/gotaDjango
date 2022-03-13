@@ -57,9 +57,9 @@
     //######################### SERVICIOS WMS DE PRUEBAS #####################
     
     //var test_WMS = "https://eosdap.hdfgroup.org:8888/ncWMS2/wms";
-    var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
+    //var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
     //var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
-    //var test_WMS = "https://wms.gota-ull.net/ncWMS/wms";
+    var test_WMS = "https://wms.gota-ull.net/ncWMS/wms";
 
 
     //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR WMS-SERVER (GetCapabilities)
@@ -89,8 +89,8 @@
         ntitCapas=[[]]; //Vector con nombre, titulo y abstract de capas (matriz TRIdimensional)
         bbox=[[]]; //vector con datos etiqueta <BoundingBox> (matriz BIdimensional)       
         
-        for (var i=0; i < layerNodes.length; i++) { 
-        //for (var i=0; i < 3; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CAPAS ====================
+        //for (var i=0; i < layerNodes.length; i++) { 
+        for (var i=0; i < 53; i++) {//========================== PRUEBAS CON UN Nº CONCRETO DE CAPAS ====================
           if (layerNodes[i].hasAttribute('queryable')){            
 		        ejeZ.push(null);
 		        defaultZ.push(null);            

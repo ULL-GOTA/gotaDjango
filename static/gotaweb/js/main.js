@@ -1,5 +1,5 @@
 // ######### Fichero JavaScript principal ###########
-  	  
+
 	  //######## Sistemas de referencia ##############
 	  //http://spatialreference.org/ref/epsg/32628/proj4/
 
@@ -231,12 +231,12 @@
           if (defaultZ[k] != null){
             $slider.attr({'max': ejeZ[k].length-1});  //tamanyo vector
             $slider.val(ejeZ[k].indexOf(defaultZ[k])); //Número de POSICIÓN del valor "default" de ELEVATION.
-            var $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
+            var $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240; //(*)
             $('#sf1').css('width', $slider_fill);
             $('#rt1').text(Number(ejeZ[k][$slider.val()]).toPrecision(4)); //valor por defecto de la capa en la etiqueta
 
             $(document).on('input', '#slider', function() {
-              $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240;//*
+              $slider_fill= ($slider.val()/(ejeZ[k].length-1)) * 240; //(*)
               //(*) ancho slider_fill
               changeLayer.layer.setParams({elevation:ejeZ[k][$slider.val()]});                        
               $('#sf1').css('width', $slider_fill);            
@@ -258,8 +258,8 @@
   //añade un control de capas        
     var capas = L.control.layers(baseLayers, overlays).addTo(map);
 
-  //adicción de capa VECTORIAL    
-    $.getJSON("wind-global.json", function(data) {      
+  //adicción de capa VECTORIAL
+    $.getJSON("static/gotaweb/json/wind-global.json", function(data) {
       windGlobal = L.velocityLayer({
         displayValues: true,
         displayOptions: {
@@ -271,8 +271,8 @@
         maxVelocity: 15
       });
       capas.addOverlay(windGlobal, "Wind - Global");
-    });    
-    
+    });
+
   //añade un marcador: 
   // www.etsii.ull.es
   L.marker([28.4829825, -16.3220933]).addTo(map).

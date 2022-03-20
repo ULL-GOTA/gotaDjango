@@ -5,5 +5,5 @@ from django.shortcuts import render
 
 def index(request):
     #return HttpResponse('Bienvenid@s a gotaWeb')
-    return render(request,'gotaweb/index.html')
+    return render(request, 'gotaweb/index.html')
 

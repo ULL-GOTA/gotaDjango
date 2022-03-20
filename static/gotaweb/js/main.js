@@ -20,47 +20,44 @@
       
       // 2º) A través de Mapbox (previa solicitud token acceso). El id permite varios estilos de mapa.############
       
-	  var outdoors = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoicHJ1ZWJhbWFwYm94MjIzMiIsImEiOiJja3dtYXR0ZnkyYTFtMm9xdnBoNWtlYmZyIn0.G7xjcWG47ApIc-7HMp6QpA', { attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a> ', maxZoom: 18, id: 'mapbox.satellite'});
+    var outdoors = L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoicHJ1ZWJhbWFwYm94MjIzMiIsImEiOiJja3dtYXR0ZnkyYTFtMm9xdnBoNWtlYmZyIn0.G7xjcWG47ApIc-7HMp6QpA', { attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a> ', maxZoom: 18, id: 'mapbox.satellite'});
 	  //, accessToken: 'your.mapbox.access.token' .addTo(map); 
       
       
       //########## Adición de OVERLAYS (manualmente): ##############
-      /*
-      var ortofoto = L.tileLayer.wms('https://idecan1.grafcan.es/ServicioWMS/OrtoExpress?',{
-	  layers: 'ortoexpress',
+
+    var ortofoto = L.tileLayer.wms('https://idecan1.grafcan.es/ServicioWMS/OrtoExpressCIR?',{
+	  layers: 'ortoexpressCIR',
 	  //styles: 'default',
 	  //continuousWorld: true,
 	  format: 'image/jpeg',
 	  transparent: true,
-	  version: '1.3.0',                
+	  version: '1.3.0',
 	  crs: crs32628,
-	  }),
-    
-	  pinar = L.tileLayer.wms('http://wms.magrama.es/sig/Biodiversidad/MFE27/wms.aspx', {
-	      layers: 'Pinar de pino canario (Pinus canariensis)',//*nombre capa (layer queryable al consultar la 'get capabilities' de la web
-	      format: 'image/png',
-	      transparent: true,
-	      version: '1.1.1', //version por defecto
-	      attribution: "Pinar Canario.",
-	  });
-    */    
+    }),
+
     municipios = L.tileLayer.wms('https://idecan2.grafcan.es/ServicioWMS/CARTO_EST?',{
       layers: 'MUN',
       //styles: 'default',
-      //continuousWorld: true,
       format: 'image/png',
       transparent: true,
-      version: '1.3.0',                
+      version: '1.3.0',
       crs: crs32628,
-	  });
+    });
 		          
     //######################### SERVICIOS WMS DE PRUEBAS #####################
     
-    //var test_WMS = "https://eosdap.hdfgroup.org:8888/ncWMS2/wms";
-    var test_WMS = "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
-    //var test_WMS = "https://ogcie.iblsoft.com/metocean/wms";
-    //var test_WMS = "https://wms.gota-ull.net/ncWMS/wms";
+    
+    var test_WMS= "http://10.6.128.184/ncWMS/wms"; //wmsServer_GOTA
 
+    switch(window.location.pathname){
+	case '/copernicus/':
+	  test_WMS= "https://nrt.cmems-du.eu/thredds/wms/cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m";
+	  break;
+	case '/eumetsat/':
+	  test_WMS= "https://view.eumetsat.int/geoserver/msg_fes/rgb_airmass/ows";
+	  break;
+    }
 
     //LEER CAPAS AUTOMATICAMENTE DESDE FICHERO XML EN SERVIDOR WMS-SERVER (GetCapabilities)
 
@@ -176,17 +173,14 @@
   L.control.scale().addTo(map);
   
   //Mapas base  ## BASELAYERS ##
-  var baseLayers = {      
-      //"OrtoFoto": ortofoto,      
-      //"CurvasNivel": outdoors,                  
+  var baseLayers = {
+      //"CurvasNivel": outdoors,
   };
   
   //Capas de informacion  ## OVERLAYS ##
   var overlays = {
-      "Municipios canarios": municipios,          
-      //"PinoCanario": pinar,      
-      //'temp' : L.timeDimension.layer.wms(T_2m, {cache:50}),      
-      //'TEST_LAYER': L.timeDimension.layer.wms(testLayer, {cache:100, updateTimeDimension: true}),
+      "Municipios canarios": municipios,
+      "OrtoFoto": ortofoto,
   };
   
   //####### incluir leyenda ############/
